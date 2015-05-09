@@ -1,3 +1,54 @@
 
-TODO
+WhoisOnline Client API
+======================
+
+This API is based on simple HTTP GET/POST requests and HTTP GET long polling requests.
+
+The session handling is based on cookies. To prevent session hijacking and password sniffing
+the client should always use https. 
+
+To reduce the risk of session cookie theft the cookie should be set with "; Secure; HttpOnly"
+(or ";HttpOnly" in case of nonHTTPS) to prevent javascript code to sniff session information.
+[RFC6265].
+
+If the commando includes data from the client the HTTP request looks like this
+	POST /clientapi/<cmd>
+and the client data ist sent as POST data in JSON format. The HTTP response
+should be a normal "200 OK" response, and include the data in JSON format.
+
+If the commando doesn't need any data from the client the HTTP request looks like this
+	GET /clientapi/<cmd>
+The HTTP response should be a normal "200 OK" response, and include the data in JSON format.
+
+In case of server problems the server may return other result codes like 404, 500, ..
+The client should handle these results well, and retry gracefully or inform the user that the 
+connection to the server failed.
+
+PreAuth Phase
+-------------
+
+ - Login:
+	POST /clientapi/login 
+	Data: username, password
+	Returns: resultcode, errortext
+
+	The username must be in the format "username@domain" like in the email standards
+	[RFC821,RFC822,RFC5321,RFC5322] or "username" without domain. 
+	if the User ommits the domain part the server may still try to authenticate the
+	user based on the server's local domain name(s).
+
+	Resultcodes: 
+	    200 authentication succeeded 
+		this response must include a "Set-Cookie" header that includes the session cookie.
+	    401 username or password wrong
+	    429 too many attempts in the last timeframe
+	    500 internal servere error
+
+Authenticted Phase
+------------------
+
+In this phase the user is already authenticated and every request must include a session cookie set
+during PreAuth phase.  
+
+.... TODO
 
