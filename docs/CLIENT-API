@@ -30,7 +30,7 @@ PreAuth Phase
  - Login:
 	POST /clientapi/login 
 	Data: username, password
-	Returns: resultcode, errortext
+	Returns: result, data
 
 	The username must be in the format "username@domain" like in the email standards
 	[RFC821,RFC822,RFC5321,RFC5322] or "username" without domain. 
@@ -48,7 +48,30 @@ Authenticted Phase
 ------------------
 
 In this phase the user is already authenticated and every request must include a session cookie set
-during PreAuth phase.  
+during PreAuth phase.  If the session cookie is missing, invalid or expired the server must return
+"authentication needed"  ( eg: "{ result:401, data: 'authentication needed'}" )
 
-.... TODO
+ - Get user profile:
+	GET /clientapi/profile/<username>
+	Return: result, data : profile (JSON)
 
+	Resultcodes:
+	    200 OK
+	    403 Not allowed
+	    404 User not found
+
+	If a user hides her profile, the server may return ether 403 or 404.
+	If <username> is "me", the profile of the requesting user is returned
+	
+ - Get conversations:
+	GET /clientapi/conversations[?skipto=<n>]
+	Return: result, data : list of conversations (JSON)
+
+	Resultcodes:
+	    200 OK
+
+	The server must return all active conversations order by last use date descending.
+	If the list of conversations is long the server my response with a partial list 
+	and add "more" as last list element. The client may request additional conversations
+	by adding "?skipto=n" to the request, with "n" beeing the id of the last list element, 
+	which the client already received.
