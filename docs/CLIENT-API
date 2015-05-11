@@ -24,6 +24,9 @@ In case of server problems the server may return other result codes like 404, 50
 The client should handle these results well, and retry gracefully or inform the user that the 
 connection to the server failed.
 
+If the server does not known the cmd or the cmd is missing, it must return the JSON
+object with resultcode 404  (eg: { result:404, data: 'unknown command'} ) 
+
 PreAuth Phase
 -------------
 
