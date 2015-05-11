@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WhoisOnline Login Page</title>
+    <style>
+    	body {	background-color: #FFF; color: #000; 
+	        font-family: sans-serif; font-size: 18pt; 
+             }
+    </style>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script>
+ 	function show_result(s)
+	{
+	    $('#errormsg').text(s);
+	}
+
+	function handle_result(res)
+	{
+	    if (res.result=="200") { window.location="/"; return; }
+	    else if (res.result=="401") { show_result("Username or Password wrong."); }
+	    else if (res.result=="429") { show_result("To many attempts, please try again later"); }
+	    else if (res.result=="500") { show_result("Server error, please try again later"); }
+	    else { show_result("Unknown error: ".res.data); }
+	}
+
+	function handle_error(response)
+	{
+	    show_result("Could not connect to server, please try again later");
+	}
+
+	$(document).ready(function(){
+	    $("form").submit(function () { 
+		$.post("/clientapi/login",
+		    { username:$('input#username').val(), password:$('input#password').val() },
+		    "json").done(handle_result).fail(handle_error);
+		return false;
+	    });
+	});
+    </script>
+</head>
+<body>
+    <h1>Welcome to WhoisOnline</h1>
+    You have to login first...<p>
+    <span id=errormsg></span>
+    <form method=POST>
+    <table>
+    <tr><td>Login:</td><td><input id=username></td></tr>
+    <tr><td>Password:</td><td><input id=password type=password></td></tr>
+    <tr><td></td><td><input name=password type=submit></td></tr>
+    </table>
+    </form>
+</body>
+</html>
