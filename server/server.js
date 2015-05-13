@@ -40,6 +40,9 @@ app.use(session.check_session);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+// ------- webclient urls
+app.use('/css', express.static('../webclient/css'));
+
 app.all("/clientapi/:cmd",function (req,res) { 
     if (!req.params.cmd) { res.send({ result:404, data: 'missing command'}); return; }
     if (req.params.cmd=="login") { ca_login(req,res); return; }
@@ -55,6 +58,8 @@ app.get("/",function (req,res) {
 app.get("/login",function (req,res) { 
     res.sendFile(path.resolve("../webclient/login.html")); 
 });
+
+// --------------------------
 
 var server = app.listen(8042, function () {
 
