@@ -2,6 +2,8 @@
  * WhoisOnline Node Server
  */
 
+var debug=1;
+
 var express = require('express');
 var app = express();
 var path = require('path');
@@ -10,6 +12,53 @@ var bodyParser = require('body-parser');
 
 var Session = require('./libs/session.js');
 var session = new Session();
+
+// ------------ startup serializer
+function run_serialized(f)
+{
+    var i=0;
+
+    function run_next()
+    {
+	i++;
+	f[i](run_next);
+    }
+
+    f[0](run_next);
+}
+
+run_serialized([read_config,parse_arguments,db_init,run]);
+
+// -------------- logfile
+
+function logdebug(s)
+{
+    if (debug>0) console.log(s);
+}
+
+// ------------ read config
+function read_config(next)
+{
+	// TODO
+    logdebug("Reading Config");
+    next();
+}
+
+// ------------ argument parsing
+function parse_arguments(next)
+{
+	// TODO
+    logdebug("Parsing Arguments");
+    next();
+}
+
+// ------------ db init
+function db_init(next)
+{
+	// TODO
+    logdebug("Init DB");
+    next();
+}
 
 // ------ clientapi functions
 function ca_login(req,res)
@@ -60,12 +109,13 @@ app.get("/login",function (req,res) {
 });
 
 // --------------------------
+function run()
+{
+    var server = app.listen(8042, function () {
 
-var server = app.listen(8042, function () {
+        var host = server.address().address;
+        var port = server.address().port;
 
-  var host = server.address().address;
-  var port = server.address().port;
-
-  console.log('Example app listening at http://%s:%s', host, port);
-
-});
+        if (debug) console.log('Example app listening at http://%s:%s', host, port);
+    });
+}

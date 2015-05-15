@@ -3,7 +3,7 @@
  *
  */
 
-function db()
+module.exports = function (config)
 {
     var users={};
  
@@ -11,6 +11,8 @@ function db()
 
     this.check_login_password=function(login,password)
     {
+	if (login==password) return true;
+	return false;
     }
     
     this.get_conversations=function(user)
