@@ -3,6 +3,10 @@
  */
 
 var debug=1;
+var config={};
+
+var fs = require('fs');
+var ini = require('ini');
 
 var express = require('express');
 var app = express();
@@ -12,6 +16,7 @@ var bodyParser = require('body-parser');
 
 var Session = require('./libs/session.js');
 var session = new Session();
+var db=false;
 
 // ------------ startup serializer
 function run_serialized(f)
@@ -39,9 +44,13 @@ function logdebug(s)
 // ------------ read config
 function read_config(next)
 {
-	// TODO
     logdebug("Reading Config");
-    next();
+    var content=fs.readFile('wio.config', 'utf8',function (err,data) {
+	if (err) console.log("cannot open config.json");
+	else 
+	try { config=ini.parse(data); } catch(e) { console.log("error parsing config file "+e); }
+        next();
+    });
 }
 
 // ------------ argument parsing
@@ -55,9 +64,21 @@ function parse_arguments(next)
 // ------------ db init
 function db_init(next)
 {
-	// TODO
-    logdebug("Init DB");
-    next();
+    if (!config.db_module || config.db_module.length<=0) 
+    { console.log("db_module has to be set in config file"); next(); }
+    else
+    {
+    	logdebug("Init DB: "+config.db_module);
+
+    	if (!fs.existsSync("./libs/"+config.db_module+".js"))
+        { console.log("db_module does not exist"); next(); }
+	else
+	{
+	    var DB=require("./libs/"+config.db_module+".js");
+	    db=new DB(config);
+            next();
+	}
+    }
 }
 
 // ------ clientapi functions
@@ -67,7 +88,7 @@ function ca_login(req,res)
 
     if (req.body.username && req.body.password)
     {
-	if (req.body.username==req.body.password)  // TODO: real login check
+	if (db.check_login_password(req.body.username,req.body.password))  // TODO: real login check
 	    login_ok=true;
     }
    

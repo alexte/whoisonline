@@ -3,15 +3,16 @@
  *
  */
 
-module.exports = function (config)
+module.exports = function (full_config)
 {
     var users={};
+    var config=full_config["db-mem"];
  
     var messages=[];
 
     this.check_login_password=function(login,password)
     {
-	if (login==password) return true;
+	if (config.auth_method=='dummy' && login.length>=3 && login==password) return true;
 	return false;
     }
     
