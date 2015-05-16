@@ -36,9 +36,9 @@ run_serialized([read_config,parse_arguments,db_init,run]);
 
 // -------------- logfile
 
-function logdebug(s)
+function logdebug()
 {
-    if (debug>0) console.log(s);
+    if (debug>0) console.log.apply(null,arguments);
 }
 
 // ------------ read config
@@ -137,6 +137,6 @@ function run()
         var host = server.address().address;
         var port = server.address().port;
 
-        if (debug) console.log('Example app listening at http://%s:%s', host, port);
+        if (debug) logdebug('Example app listening at http://%s:%s', host, port);
     });
 }
