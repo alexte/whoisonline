@@ -84,24 +84,32 @@ function db_init(next)
 // ------ clientapi functions
 function ca_login(req,res)
 {
-    var login_ok=false;
-
+    var username=false;
+    
     if (req.body.username && req.body.password)
     {
-	if (db.check_login_password(req.body.username,req.body.password))  // TODO: real login check
-	    login_ok=true;
+	username=req.body.username;
+			// TODO check if username complete user@domain
+	if (db.check_login_password(username,req.body.password, function(u)
+	    {
+		if (!u) { res.send({result:401, data:"username or password wrong"}); return; }
+		var s=session.init_session(req,res);
+		s.username=u.username;
+		res.send({result:200, data:"OK"});
+	    }));
     }
-   
-    // check login password
-    if (login_ok) 
-    {
-	session.init_session(req,res);
-	res.send({result:200, data:"OK"});
-    }
-    else res.send({result:401, data:"username or password wrong"});
-		// TODO: throttleing for login attempts
+		// TODO: throtteling for login attempts
 }
 
+function ca_start(req,res)
+{
+    var r={ result:200, now: new Date() };
+
+    r.username=req.session.username;
+    // r.fullname=get_fullname_by_username(req.session.username));
+
+    res.send(r);
+}
 // ---- express middleware modules
 app.use(cookieParser());
 
@@ -117,6 +125,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     if (!req.params.cmd) { res.send({ result:404, data: 'missing command'}); return; }
     if (req.params.cmd=="login") { ca_login(req,res); return; }
     if (!req.session.authenticated) { res.send({ result:401, data: 'authentication needed'}); return; }
+    if (req.params.cmd=="start") { ca_start(req,res); return; }
     res.send({ result:404, data: 'unknown command'}); 
 });
 

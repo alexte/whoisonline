@@ -10,17 +10,19 @@ module.exports = function (full_config)
  
     var messages=[];
 
-    this.check_login_password=function(login,password)
+	// calls callback with user object if login/password is ok
+	// calls callback with false if login/password is not ok
+    this.check_login_password=function(login,password,callback)
     {
-	if (config.auth_method=='dummy' && login.length>=3 && login==password) return true;
-	return false;
+	if (config.auth_method=='dummy' && login.length>=3 && login==password) callback({ username:login });
+	else callback(false);
     }
     
-    this.get_conversations=function(user)
+    this.get_conversations=function(user,callback)
     {
     }
 
-    this.get_messages=function(user,selector)
+    this.get_messages=function(user,selector,callback)
     {
     }
 }
