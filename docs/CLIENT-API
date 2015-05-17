@@ -33,12 +33,15 @@ PreAuth Phase
  - Login:
 	POST /clientapi/login 
 	Data: username, password
-	Returns: result, data
+	Returns: result, msg
 
 	The username must be in the format "username@domain" like in the email standards
 	[RFC821,RFC822,RFC5321,RFC5322] or "username" without domain. 
 	if the User ommits the domain part the server may still try to authenticate the
 	user based on the server's local domain name(s).
+
+	Msg must be a string explaining the resultcode. The client may show this msg, especially
+	if it has no translation for the result code.
 
 	Resultcodes: 
 	    200 authentication succeeded 
@@ -78,3 +81,28 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	and add "more" as last list element. The client may request additional conversations
 	by adding "?skipto=n" to the request, with "n" beeing the id of the last list element, 
 	which the client already received.
+
+ - Get startup infos:
+	GET /clientapi/start
+	Return: result, username, now, 
+		OPTIONAL fullname, user gui prefs
+
+	Resultcodes:
+		200 OK
+
+	"Username" is in <user>@<domain> format. 
+	"Now" is a javascript Date() object.
+
+	"User gui prefs" is an object which was sent by the client before, the server
+	should return it unchanged.
+	
+
+JSON object structures 
+----------------------
+
+ - Profile
+ 	TODO
+
+ - List of conversations
+	TODO
+
