@@ -93,8 +93,8 @@ function ca_login(req,res)
 	if (db.check_login_password(username,req.body.password, function(u)
 	    {
 		if (!u) { res.send({result:401, data:"username or password wrong"}); return; }
-		var s=session.init_session(req,res);
-		s.username=u.username;
+		session.init_session(req,res);
+		req.session.username=u.username;
 		res.send({result:200, data:"OK"});
 	    }));
     }

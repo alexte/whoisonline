@@ -17,7 +17,7 @@ module.exports = function()
         res.cookie(cookie_name,id);
         sesslist[id]={ "id":id, authenticated:true };
         req.session=sesslist[id];
-        return id;
+        return sesslist[id];
     };
 
     // express middleware to check if user has a session allready

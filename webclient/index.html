@@ -8,13 +8,31 @@
     <link rel="stylesheet" type="text/css" href="css/conversations.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>
+	function api(cmd,data,f)
+	{
+	    $.getJSON("/clientapi/"+cmd,data,function (data) {
+		if (data.result==200) f(data);
+			// else TODO
+	    }); // .fail() TODO
+	}
+
 	$(document).ready(function(){
-	    // do something at page load
+	    api("start",false,function (data) {
+		$("span.username").text(data.username);
+		if(data.now) last_poll=new Date(data.now);
+		$("span.now").text(last_poll.toLocaleTimeString());
+	    });
 	});
     </script>
 </head>
 <body>
-<div id=header>WhoisOnline</div>
+<div id=header>
+    <h1 class=logo>WhoisOnline</h1>
+    <div id=status>
+	<span class=now></span><br>
+	<span class=username></span>
+    </div>
+</div>
 <div id=convlist_div>
     <ul id=convlist>
 	<li>Loading...</li>
