@@ -3,14 +3,23 @@ body, html { height: 100%; margin:0; padding:0; }
 
 /*  div { border: 1px solid green; }  */
 
-div#header { position:absolute; top:0; width:100%; height:2em; 
+div#header { position:absolute; top:0; left:0; right:0; height:2.4em; 
 	     overflow:hidden; padding: 0.2em;
-	     background-color: #a11; color: #fff;
+	     background-color: #A11; color: #fff;
 	   }
 div#header h1.logo { margin:0.2em; font-size:1.5em; }
-div#header div#status  { font-size: 0.8em; position:absolute; top:0.3em; right:1em; text-align:right; }
-div#header div#status span { clear:both; }
+div#header div#status  { font-size: 0.8em; position:absolute; top:0.5em; right:0.5em; text-align:right; }
+i.option-menu { float:right; margin:0.18em; margin-left:0.4em; font-size:2em; }
+div#status div.now { position: absolute; top:0.2em; right: 3em; width:10em; }
+div#status div.username { position: absolute; top:1.4em; right: 3em;  }
 
-div#convlist_div { position: absolute; top: 2.4em; bottom: 0; left: 0; width: 10em; }
-div#conv_div { position: absolute; top: 2.4em; bottom: 0; left: 10em; right: 0; }
+div#convlist_div 
+            {   position: absolute; top: 2.8em; bottom: 0; left: 0; width: 10em; 
+		border-right: 0.2em double #A11; }
+ul.convlist {   margin:0; padding:0.3em;
+		list-style-type: none; 
+	    }
+ul.convlist li { margin:0.1em; }
+
+div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 10.2em; right: 0; }
 
