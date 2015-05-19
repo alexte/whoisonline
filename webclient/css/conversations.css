@@ -23,3 +23,7 @@ ul.convlist li { margin:0.1em; }
 
 div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 10.2em; right: 0; }
 
+div#omenu { position:absolute; top:2.3em; right:0.2em; padding:0.4em; 
+	    text-align:center; border: 3px solid black; background-color: #FFF; }
+
+button.menubutton { background-color:transparent; border:none }

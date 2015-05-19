@@ -101,6 +101,12 @@ function ca_login(req,res)
 		// TODO: throtteling for login attempts
 }
 
+function ca_logout(req,res)
+{
+    session.remove_session(req.session);
+    res.send({result:200, data:"OK"});
+}
+
 function ca_start(req,res)
 {
     var r={ result:200, now: new Date() };
@@ -124,6 +130,7 @@ app.use('/css', express.static('../webclient/css'));
 app.all("/clientapi/:cmd",function (req,res) { 
     if (!req.params.cmd) { res.send({ result:404, data: 'missing command'}); return; }
     if (req.params.cmd=="login") { ca_login(req,res); return; }
+    if (req.params.cmd=="logout") { ca_logout(req,res); return; }
     if (!req.session.authenticated) { res.send({ result:401, data: 'authentication needed'}); return; }
     if (req.params.cmd=="start") { ca_start(req,res); return; }
     res.send({ result:404, data: 'unknown command'}); 

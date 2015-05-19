@@ -95,7 +95,13 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 
 	"User gui prefs" is an object which was sent by the client before, the server
 	should return it unchanged.
+
+ - Logout
+	GET /clientapi/logout
+	Return: result, msg
 	
+	Resultcodes:
+		200 OK
 
 JSON object structures 
 ----------------------

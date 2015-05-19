@@ -17,12 +17,28 @@
 	    }); // .fail() TODO
 	}
 
+	function logout()
+	{
+	    api("logout",false,function () {
+		window.location="/login";
+	    });
+	}
+
+	function add_omenu_entry(word,func)
+	{
+	    var entry=$("<button class=menubutton>"+word+"</button>");
+	    entry.appendTo("#omenu").click(func);
+	}
+
 	$(document).ready(function(){
 	    api("start",false,function (data) {
 		$(".username").text(data.username);
 		if(data.now) last_poll=new Date(data.now);
 		$(".now").text(last_poll.toLocaleTimeString());
 	    });
+	    $("#omenu").hide();
+	    $(".option-menu").click(function () { $("#omenu").toggle(); });
+	    add_omenu_entry("Logout",logout);
 	});
     </script>
 </head>
@@ -34,6 +50,8 @@
 	<div class=now></div>
 	<div class=username></div>
     </div>
+</div>
+<div id=omenu>
 </div>
 <div id=convlist_div>
     <ul class=convlist>
