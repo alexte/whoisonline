@@ -7,7 +7,7 @@ module.exports = function (full_config)
 {
     var users={};
     var config=full_config["db-mem"];
- 
+
     var messages=[];
 
 	// calls callback with user object if login/password is ok
@@ -27,6 +27,10 @@ module.exports = function (full_config)
     }
     
     this.get_conversations=function(user,callback)
+    {
+    }
+
+    this.save_messages=function(message,callback)
     {
     }
 
