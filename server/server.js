@@ -81,6 +81,25 @@ function db_init(next)
     }
 }
 
+// ------- spooler
+
+function spool(from,to,type,data)
+{
+    // TODO
+	// save to "from" queue 
+	// save to database for "from"
+	// push to "to" queue 
+	// save to database for "to"
+}
+
+function queue_to(msg)
+{
+}
+
+function queue_from(msg)
+{
+}
+
 // ------ clientapi functions
 function ca_login(req,res)
 {
@@ -89,7 +108,6 @@ function ca_login(req,res)
     if (req.body.username && req.body.password)
     {
 	username=req.body.username;
-			// TODO check if username complete user@domain
 	if (db.check_login_password(username,req.body.password, function(u)
 	    {
 		if (!u) { res.send({result:401, data:"username or password wrong"}); return; }
@@ -98,6 +116,7 @@ function ca_login(req,res)
 		res.send({result:200, data:"OK"});
 	    }));
     }
+    else { res.send({result:400, data:"invalid call"}); }
 		// TODO: throtteling for login attempts
 }
 
@@ -116,6 +135,17 @@ function ca_start(req,res)
 
     res.send(r);
 }
+
+function ca_invite(req,res)
+{
+    var rec=req.body.recipient;
+    if (!rec) { res.send({result:400, data:"invalid call"}); return; } 
+
+    spool(req.session.username,rec,"invite");
+
+    res.send({result:200, data:"sent" });
+}
+
 // ---- express middleware modules
 app.use(cookieParser());
 
@@ -133,6 +163,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     if (req.params.cmd=="logout") { ca_logout(req,res); return; }
     if (!req.session.authenticated) { res.send({ result:401, data: 'authentication needed'}); return; }
     if (req.params.cmd=="start") { ca_start(req,res); return; }
+    if (req.params.cmd=="invite") { ca_invite(req,res); return; }
     res.send({ result:404, data: 'unknown command'}); 
 });
 
