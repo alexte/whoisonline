@@ -38,6 +38,14 @@
 	    });
 	    $("#omenu").hide();
 	    $(".option-menu").click(function () { $("#omenu").toggle(); });
+	    $("#add_conv").click(function () {
+		$("#add_conv").hide();
+		$("#add_conv_dialog").show();
+	    });
+	    $("#close_search").click(function () {
+		$("#add_conv").show();
+		$("#add_conv_dialog").hide();
+	    });
 	    add_omenu_entry("Logout",logout);
 	});
     </script>
@@ -52,8 +60,14 @@
     </div>
 </div>
 <div id=convlist_div>
+    <i id=add_conv class="fa fa-plus-circle"></i>
+    <div id=add_conv_dialog>
+	<input id=searchword> 
+	<i id="do_search" class="fa fa-search"></i>
+	<i id="close_search" class="fa fa-times"></i>
+    </div>
     <ul class=convlist>
-	<li>Loading...</li>
+	<li>Loading...<i class="fa fa-circle-o-notch fa-spin"></i></li>
     </ul>
 </div>
 <div id=conv_div>
