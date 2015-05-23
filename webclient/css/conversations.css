@@ -30,4 +30,10 @@ button.menubutton { background-color:transparent; border:none }
 
 i#add_conv { position:absolute; right:0.2em; top:0.2em; text-shadow: 1px 1px 10px #FAA; color:#A11; font-size:2em; }
 
-#add_conv_dialog { display:none; margin:0.1em; padding:0.2em; background-color: #E99; border: 2px solid #A11; }
+#add_conv_dialog { display:none; margin:0.1em; padding:0.2em; 
+		   background-color: #E99; border: 2px solid #A11; 
+		   text-align: justify;
+		 }
+
+.online_status.online { color: #5D5; }
+.online_status.offline { color: #000; }

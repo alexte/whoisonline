@@ -9,12 +9,24 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>
+	function set_online_status(w)
+	{
+	    if (w=="online") $(".online_status").addClass("online").removeClass("offline");
+	    if (w=="offline") $(".online_status").addClass("offline").removeClass("online");
+	}
+
 	function api(cmd,data,f)
 	{
 	    $.getJSON("/clientapi/"+cmd,data,function (data) {
-		if (data.result==200) f(data);
-			// else TODO
-	    }); // .fail() TODO
+		if (data.result==200) 
+		{
+	 	    f(data);
+		    set_online_status("online");
+		}
+			// else TODO   eg: authentication needed -> send to login
+	    }).fail(	// fail: server not reachable ?
+		function () { set_online_status("offline"); }
+	    );
 	}
 
 	function logout()
@@ -28,6 +40,29 @@
 	{
 	    var entry=$("<button class=menubutton>"+word+"</button>");
 	    entry.appendTo("#omenu").click(func);
+	}
+  
+	var search_timer=false;
+
+	function delayed_add_dialog_search()
+	{
+	    if (search_timer) clearTimeout(search_timer);
+	    search_timer=setTimeout(function () { search_timer=false; add_dialog_search(); },1500);
+	}
+
+	function show_search_result(data)
+	{
+	    for (var i=0;i.data;i++)
+	    {
+		if (data[i].username) $("#add_search_result").append("<li>"+data[i].username+"</li>");
+	    }
+	}
+
+	function add_dialog_search()
+	{
+	    if (search_timer) clearTimeout(search_timer);
+	    search_timer=false;
+	    api("search_user",{ search: $("#searchword").val()}, show_search_result);
 	}
 
 	$(document).ready(function(){
@@ -46,13 +81,15 @@
 		$("#add_conv").show();
 		$("#add_conv_dialog").hide();
 	    });
+	    $("#searchword").change(delayed_add_dialog_search).keypress(delayed_add_dialog_search);
+	    $("#do_search").click(add_dialog_search);
 	    add_omenu_entry("Logout",logout);
 	});
     </script>
 </head>
 <body>
 <div id=header>
-    <h1 class=logo>WhoisOnline</h1>
+    <h1 class=logo>WhoisOnline <i class="online_status fa fa-at"></i> </h1>
     <div id=status>
 	<i class="option-menu fa fa-bars"></i>
 	<div class=now></div>
@@ -65,6 +102,8 @@
 	<input id=searchword> 
 	<i id="do_search" class="fa fa-search"></i>
 	<i id="close_search" class="fa fa-times"></i>
+	<ul id=add_search_result>
+	</ul>
     </div>
     <ul class=convlist>
 	<li>Loading...<i class="fa fa-circle-o-notch fa-spin"></i></li>
