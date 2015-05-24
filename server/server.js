@@ -199,7 +199,7 @@ app.get("/login",function (req,res) {
 // --------------------------
 function run()
 {
-    var server = app.listen(8042, function () {
+    var server = app.listen(config.port||8042, function () {
 
         var host = server.address().address;
         var port = server.address().port;
