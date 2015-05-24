@@ -155,12 +155,12 @@ function ca_search_user(req,res)
     res.send(r);
 }
 
-function ca_invite(req,res)
+function ca_start_conversation(req,res)
 {
-    var rec=req.body.recipient;
-    if (!rec) { res.send({result:400, data:"invalid call"}); return; } 
+    var username=req.body.username;
+    if (!username) { res.send({result:400, data:"invalid call"}); return; } 
 
-    spool(req.session.username,rec,"invite");
+    spool(req.session.username,username,"start_conversation");
 
     res.send({result:200, data:"sent" });
 }
@@ -182,7 +182,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     if (req.params.cmd=="logout") { ca_logout(req,res); return; }
     if (!req.session.authenticated) { res.send({ result:401, data: 'authentication needed'}); return; }
     if (req.params.cmd=="start") { ca_start(req,res); return; }
-    if (req.params.cmd=="invite") { ca_invite(req,res); return; }
+    if (req.params.cmd=="start_conversation") { ca_start_conversation(req,res); return; }
     if (req.params.cmd=="search_user") { ca_search_user(req,res); return; }
     res.send({ result:404, data: 'unknown command'}); 
 });

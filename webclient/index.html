@@ -15,23 +15,40 @@
 	    if (w=="offline") $(".online_status").addClass("offline").removeClass("online");
 	}
 
+	function contains(arr,element)
+	{
+	    var i;
+	    for (i=0;i<arr.length;i++)
+		if (arr[i]==element) return true;
+	    return false;
+	}
+
 	function api(cmd,data,f)
 	{
-	    $.getJSON("/clientapi/"+cmd,data,function (data) {
-		if (data.result==200) 
-		{
-	 	    f(data);
-		    set_online_status("online");
-		}
-		else if (data.result==401)
-		{
-		    alert("Server asks for authentication...");
-		    window.location="/login";
-		}
-			// else TODO   
-	    }).fail(	// fail: server not reachable ?
-		function () { set_online_status("offline"); }
-	    );
+	    var method;
+	    if (contains(["start_conversation"],cmd)) method="POST";
+	    else method="GET";
+
+	    $.ajax({ 
+		type: method,
+		url: "/clientapi/"+cmd,
+		data: data,
+		dataType: "JSON",
+		success: function (data) {
+		    if (data.result==200) 
+		    {
+	 	        f(data);
+		        set_online_status("online");
+		    }
+		    else if (data.result==401)
+		    {
+		        alert("Server asks for authentication...");
+		        window.location="/login";
+		    }
+			    // else TODO   
+		},
+	    	fail: function () { set_online_status("offline"); } // fail: server not reachable ?
+	    });
 	}
 
 	function logout()
@@ -61,7 +78,8 @@
 	    $("#add_search_result").empty();
 	    if (ul) for (var i=0;i<ul.length;i++)
 	    {
-		if (ul[i].username) $("#add_search_result").append("<li>"+ul[i].username+"</li>");
+		if (ul[i].username) $("#add_search_result").append("<li><span>"+ul[i].username+"</span> "+
+				      "<i class=\"add_conv_username fa fa-plus-circle\"></i></li>");
 	    }
 	}
 
@@ -70,6 +88,15 @@
 	    if (search_timer) clearTimeout(search_timer);
 	    search_timer=false;
 	    api("search_user",{ search: $("#searchword").val()}, show_search_result);
+	}
+
+	function start_conversation(username)
+	{
+	    if (username.length<5) return;
+	    api("start_conversation",{ username: username },function(data) {
+                $("#add_conv").show();
+                $("#add_conv_dialog").hide();
+	    });
 	}
 
 	$(document).ready(function(){
@@ -90,6 +117,9 @@
 	    });
 	    $("#searchword").change(delayed_add_dialog_search).keypress(delayed_add_dialog_search);
 	    $("#do_search").click(add_dialog_search);
+	    $('#add_search_result').on('click','.add_conv_username', function (event) {
+                start_conversation($(event.target).parent().find("span").text());
+            });
 	    add_omenu_entry("Logout",logout);
 	});
     </script>
