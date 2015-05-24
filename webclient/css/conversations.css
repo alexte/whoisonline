@@ -35,5 +35,7 @@ i#add_conv { position:absolute; right:0.2em; top:0.2em; text-shadow: 1px 1px 10p
 		   text-align: justify;
 		 }
 
+#add_search_result { list-style-type: none; padding-left: 0.3em; } 
+
 .online_status.online { color: #5D5; }
 .online_status.offline { color: #000; }

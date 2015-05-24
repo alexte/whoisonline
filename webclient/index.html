@@ -23,7 +23,12 @@
 	 	    f(data);
 		    set_online_status("online");
 		}
-			// else TODO   eg: authentication needed -> send to login
+		else if (data.result==401)
+		{
+		    alert("Server asks for authentication...");
+		    window.location="/login";
+		}
+			// else TODO   
 	    }).fail(	// fail: server not reachable ?
 		function () { set_online_status("offline"); }
 	    );
@@ -52,9 +57,11 @@
 
 	function show_search_result(data)
 	{
-	    for (var i=0;i.data;i++)
+	    var ul=data.userlist;
+	    $("#add_search_result").empty();
+	    if (ul) for (var i=0;i<ul.length;i++)
 	    {
-		if (data[i].username) $("#add_search_result").append("<li>"+data[i].username+"</li>");
+		if (ul[i].username) $("#add_search_result").append("<li>"+ul[i].username+"</li>");
 	    }
 	}
 
@@ -99,6 +106,7 @@
 <div id=convlist_div>
     <i id=add_conv class="fa fa-plus-circle"></i>
     <div id=add_conv_dialog>
+	Search for user address:<br>
 	<input id=searchword> 
 	<i id="do_search" class="fa fa-search"></i>
 	<i id="close_search" class="fa fa-times"></i>

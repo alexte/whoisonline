@@ -61,6 +61,11 @@ function parse_arguments(next)
     next();
 }
 
+function valid_username(w)
+{
+    return w.match(/^[a-zA-Z0-9.#$%&*+/=?^_~-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$/);
+}
+
 // ------------ db init
 function db_init(next)
 {
@@ -136,6 +141,20 @@ function ca_start(req,res)
     res.send(r);
 }
 
+function ca_search_user(req,res)
+{
+    var sw=req.query.search;
+    if (!sw) { res.send({result:400, data:"invalid call (s)"}); return; } 
+
+    r={result:200, userlist:[] };
+    if (valid_username(sw)) 
+    {
+	r.userlist[0]={};
+	r.userlist[0].username=sw;
+    }
+    res.send(r);
+}
+
 function ca_invite(req,res)
 {
     var rec=req.body.recipient;
@@ -164,6 +183,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     if (!req.session.authenticated) { res.send({ result:401, data: 'authentication needed'}); return; }
     if (req.params.cmd=="start") { ca_start(req,res); return; }
     if (req.params.cmd=="invite") { ca_invite(req,res); return; }
+    if (req.params.cmd=="search_user") { ca_search_user(req,res); return; }
     res.send({ result:404, data: 'unknown command'}); 
 });
 
