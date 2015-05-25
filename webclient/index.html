@@ -23,10 +23,12 @@
 	    return false;
 	}
 
+	var post_api_cmds=["start_conversation"];
+
 	function api(cmd,data,f)
 	{
 	    var method;
-	    if (contains(["start_conversation"],cmd)) method="POST";
+	    if (contains(post_api_cmds,cmd)) method="POST";
 	    else method="GET";
 
 	    $.ajax({ 
@@ -34,13 +36,13 @@
 		url: "/clientapi/"+cmd,
 		data: data,
 		dataType: "JSON",
-		success: function (data) {
-		    if (data.result==200) 
+		success: function (ret) {
+		    if (ret.result==200) 
 		    {
-	 	        f(data);
+	 	        f(ret);
 		        set_online_status("online");
 		    }
-		    else if (data.result==401)
+		    else if (ret.result==401)
 		    {
 		        alert("Server asks for authentication...");
 		        window.location="/login";
@@ -99,11 +101,23 @@
 	    });
 	}
 
+	function show_conversation_list(data)
+	{
+	    var conversations=data.data;
+	    if (!conversations) return;
+	    $("#convlist").empty();
+	    for (var i=0;i<conversations.length;i++)
+	    {
+		$("#convlist").append("<li>"+conversations[i].to+"</li>");
+	    }
+	}
+
 	$(document).ready(function(){
 	    api("start",false,function (data) {
 		$(".username").text(data.username);
 		if(data.now) last_poll=new Date(data.now);
 		$(".now").text(last_poll.toLocaleTimeString());
+		api("get_conversations",false,show_conversation_list);
 	    });
 	    $("#omenu").hide();
 	    $(".option-menu").click(function () { $("#omenu").toggle(); });
@@ -143,7 +157,7 @@
 	<ul id=add_search_result>
 	</ul>
     </div>
-    <ul class=convlist>
+    <ul id=convlist>
 	<li>Loading...<i class="fa fa-circle-o-notch fa-spin"></i></li>
     </ul>
 </div>

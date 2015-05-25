@@ -155,12 +155,20 @@ function ca_search_user(req,res)
     res.send(r);
 }
 
+function ca_get_conversations(req,res)
+{
+    db.get_conversations(req.session.username,function (data) {
+    	res.send({result:200, data: data });
+    });
+}
+
 function ca_start_conversation(req,res)
 {
     var username=req.body.username;
     if (!username) { res.send({result:400, data:"invalid call"}); return; } 
 
-    spool(req.session.username,username,"start_conversation");
+    db.add_conversation(req.session.username,username);
+    // spool(req.session.username,username,"start_conversation");
 
     res.send({result:200, data:"sent" });
 }
@@ -181,10 +189,12 @@ app.all("/clientapi/:cmd",function (req,res) {
     if (req.params.cmd=="login") { ca_login(req,res); return; }
     if (req.params.cmd=="logout") { ca_logout(req,res); return; }
     if (!req.session.authenticated) { res.send({ result:401, data: 'authentication needed'}); return; }
-    if (req.params.cmd=="start") { ca_start(req,res); return; }
-    if (req.params.cmd=="start_conversation") { ca_start_conversation(req,res); return; }
-    if (req.params.cmd=="search_user") { ca_search_user(req,res); return; }
-    res.send({ result:404, data: 'unknown command'}); 
+
+    if (req.params.cmd=="start") ca_start(req,res); 
+    else if (req.params.cmd=="start_conversation") ca_start_conversation(req,res); 
+    else if (req.params.cmd=="get_conversations") ca_get_conversations(req,res);
+    else if (req.params.cmd=="search_user") ca_search_user(req,res); 
+    else res.send({ result:404, data: 'unknown command'}); 
 });
 
 app.get("/",function (req,res) { 

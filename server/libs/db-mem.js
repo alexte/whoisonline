@@ -22,12 +22,24 @@ module.exports = function (full_config)
 	    else { callback(false); return; }
 	}
 	else username=login;
-	if (config.auth_method=='dummy' && login.length>=3 && login==password) callback({ username:username });
+	if (config.auth_method=='dummy' && login.length>=3 && login==password) 
+	{
+	    users[username]={ conversations:[] };
+	    callback({ username:username });
+	}
 	else callback(false);
     }
     
-    this.get_conversations=function(user,callback)
+    this.get_conversations=function(username,callback)
     {
+	if (users[username]) callback(users[username].conversations);
+	callback([]);
+    }
+
+    this.add_conversation=function(from,to,callback)
+    {
+	users[from].conversations.push({to:to});
+	if (callback) callback("OK"); 	// TODO what should this function return in the callback ?
     }
 
     this.save_messages=function(message,callback)
