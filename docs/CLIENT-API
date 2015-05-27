@@ -68,15 +68,21 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	should increase this retransmit intervall if the server repeatedly fails to responde 
 	with result 200.
 
-	GET /clientapi/poll
-	Return: result, [data], [retry_after]
+	GET /clientapi/poll?seq=<lastseq>
+	Return: result, [seq], [data], [retry_after]
 
         Resultcodes:
             200 OK
 	    204 I am bored
 	    503 Service Unavailable. Please retry later
 
-	In case of 200 data must include one or more objects of new messages.
+	Lastseq has to be the last "seq" number that came from server eather from last poll, or
+	from the "start" cmd.
+
+	In case of 200 data must include one or more objects of new messages and a new seq number.
+	With the next poll call the client ACKs that it received the messages by using this seq
+	number. The server must increases the seq number with every message or every group of messages.
+
 	If the timeout occured the server must return resultcode 204 (data is optional). 
 	If the server is overloaded and wants the client to wait it may return
 	503. In this case the attribute "retry_after" must be returned which
@@ -114,7 +120,7 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 
  - Get startup infos:
 	GET /clientapi/start
-	Return: result, username, now, 
+	Return: result, seq, username, now, 
 		OPTIONAL fullname, user gui prefs
 
 	Resultcodes:
@@ -122,6 +128,7 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 
 	"Username" is in <user>@<domain> format. 
 	"Now" is a javascript Date() object.
+	"Seq" is a sequence number that will be increased with every message received by poll.
 
 	"User gui prefs" is an object which was sent by the client before, the server
 	should return it unchanged.

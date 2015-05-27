@@ -33,7 +33,7 @@ module.exports = function (full_config)
     this.get_conversations=function(username,callback)
     {
 	if (users[username]) callback(users[username].conversations);
-	callback([]);
+	else callback([]);
     }
 
     this.add_conversation=function(from,to,callback)

@@ -18,6 +18,8 @@ var Session = require('./libs/session.js');
 var session = new Session();
 var db=false;
 
+var POLL_TIMEOUT=20; // seconds
+
 // ------------ startup serializer
 function run_serialized(f)
 {
@@ -131,10 +133,25 @@ function ca_logout(req,res)
     res.send({result:200, data:"OK"});
 }
 
+function ca_poll(req,res)
+{
+   // TODO
+   // if client has old connection 
+   //     responde and close old connection
+   // get "seq" sequencer
+   // check if queue has newer messages than seq
+   //	send new queue
+   // else
+   //   rember connection for client
+   //   set timeout for connection to responde to it
+   setTimeout(function () { res.send({ result:204, data:"I am bored" }); },POLL_TIMEOUT*1000);
+}
+
 function ca_start(req,res)
 {
     var r={ result:200, now: new Date() };
 
+    r.seq=1; // TODO get current seq number of this user if she is logged in twice 
     r.username=req.session.username;
     // r.fullname=get_fullname_by_username(req.session.username));
 
@@ -194,6 +211,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="start_conversation") ca_start_conversation(req,res); 
     else if (req.params.cmd=="get_conversations") ca_get_conversations(req,res);
     else if (req.params.cmd=="search_user") ca_search_user(req,res); 
+    else if (req.params.cmd=="poll") ca_poll(req,res); 
     else res.send({ result:404, data: 'unknown command'}); 
 });
 
