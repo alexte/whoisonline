@@ -15,7 +15,7 @@ module.exports = function()
     {
         var id=uid.sync(20);
         res.cookie(cookie_name,id);
-        sesslist[id]={ "id":id, authenticated:true };
+        sesslist[id]={ "id":id, last_used:Date.now()/1000, authenticated:true };
         req.session=sesslist[id];
         return sesslist[id];
     };
@@ -27,7 +27,11 @@ module.exports = function()
 
         if(req.cookies && req.cookies[cookie_name])
         {
-            if (sesslist[req.cookies[cookie_name]]) req.session=sesslist[req.cookies[cookie_name]];
+            if (sesslist[req.cookies[cookie_name]])
+	    {
+		sesslist[req.cookies[cookie_name]].last_used=Date.now()/1000;
+		req.session=sesslist[req.cookies[cookie_name]];
+	    }
             else { res.clearCookie(cookie_name); }
         }
         next();
@@ -41,6 +45,20 @@ module.exports = function()
         if (o.id && sesslist[o.id]) { delete sesslist[o.id]; return true; }
         return false;
     };
+
+    // returns array of sessionid, of sessions not used in the lasts idletime seconds
+    this.get_old_sessions = function(idletime)
+    {
+	var t=Date.now()/1000-idletime;
+ 	var old=[];
+
+	for (var id in sesslist)
+	{
+	    if (sesslist.hasOwnProperty(id))
+		if (sesslist[id].last_used<t) old.push(id);
+	}
+	return old;
+    }
    
     if (debug) console.log("modules sessions loaded");
 
