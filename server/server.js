@@ -88,7 +88,77 @@ function db_init(next)
     }
 }
 
-// ------- spooler
+// ------- online queue 
+//   manages the online users and the outgoing queues to them
+
+function online_queue_class()
+{
+	// assoc array of queues with username as key
+	//   elements:  username:
+	//		seq: current sequence number of queue, increases with every msg
+	//		msgs: 
+	//		sessions: assoc array of { acked, connection } with sessionid as key
+    var queues={};
+
+	// when the user logs in a queue is generated or 
+	// if it's the second session of the same user, the old one is used
+	// Returns: the new or current seq
+    this.add_session = function(username,sessionid)
+    {
+	if (!username) return false;
+	var u=queues[username];
+	if (u) 
+	{
+	    u.sessions[sessionid]={ acked:u.seq, connection:false };
+	    return u.seq;
+	}
+	queues[username]={ username: username, sessions:{}, seq:1 };
+	queues[username].sessoins[sessionid]={acked:1, connection:false };
+	return 1;
+    }
+
+    this.remove_session = function(sessionid)
+    {
+	for (var username in queues) 
+	{
+   	    if (queues.hasOwnProperty(username)) 
+	    {
+		delete queues[username].sessions[sessionid];
+		if (queues[username].sessions.length==0) remove_queue(username);
+    	    }
+	}
+    }
+
+    this.add_message = function(username,msg)
+    {
+	if (!username || !queues[username]) return false;
+	queues[username].msgs.push(msg);
+	queues[username].seq++;
+
+	// TODO check for connections to send immediatly
+	return true;
+    }
+
+    // this.remove_message = function .... do we need this ?
+
+    this.ack_message = function(username,sessionid,seq)
+    {
+	if (!queues[username]) return false;
+	if (!queues[username].sessions[sessionid]) return false;
+	queues[username].sessions[sessionid].acked=seq;
+	return true;
+    }
+
+    function remove_queue(username) { delete queues[username]; }
+
+    // TODO garbage collection of msgs per queue acked by all sessions
+    // setInterval(gc,2000);
+}
+
+var oq=new online_queue_class();
+
+
+// ------- spooler 
 
 function spool(from,to,type,data)
 {
