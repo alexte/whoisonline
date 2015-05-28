@@ -129,13 +129,55 @@ function online_queue_class()
 	}
     }
 
+    function run_queue(q)
+    {
+	for(var id in q.sessions)
+	{
+	    var s=q.sessions[id];
+	    if (s.acked<s.seq && s.connection)
+	    {
+		var msgs=[];
+		for(i=0;i<q.msgs.length;i++) 
+		    if (q.msgs[i].seq>s.acked) msgs.push(q.msgs[i].msg);
+		clearTimeout(s.connection.timeout);
+		s.connection.timeout=false;
+		s.connection.send({ seq:s.seq, msgs:msgs });
+		s.connection==false;
+	    }
+	}
+    }
+
+    this.new_connection = function(req,res)
+    {
+	var username=req.session.username;
+	var sessionid=req.session.id;
+	if (!username || !sessionid) { console.log("Invalid connections in new_connection"); return false; }
+	var q=queues[username];
+	if (!q) { console.log("No shuch user in new_connection"); return false; }
+  	var s=q.sessions[sessionid];
+	if (!s) { console.log("No shuch user in new_connection"); return false; }
+	if (s.connection) // found old connection
+	{
+	    if (s.connection.timeout) clearTimeout(s.connection.timeout); 
+	    s.connection.timeout=false;
+	    s.connection.send({ result:204, data:"Dropping old poll connection" });
+	}
+	s.connection=res;
+
+	run_queue(q);
+
+        if (s.connection) s.connection.timeout=setTimeout(function () { s.connection.send({ result:204, data:"I am bored" }); },POLL_TIMEOUT*1000);
+	return true;
+    }
+
     this.add_message = function(username,msg)
     {
 	if (!username || !queues[username]) return false;
-	queues[username].msgs.push(msg);
-	queues[username].seq++;
+	var q=queues[username];
+	q.seq++;
+	q.msgs.push({seq:q.seq, msg:msg});
 
-	// TODO check for connections to send immediatly
+	run_queue(q);
 	return true;
     }
 
@@ -205,16 +247,7 @@ function ca_logout(req,res)
 
 function ca_poll(req,res)
 {
-   // TODO
-   // if client has old connection 
-   //     responde and close old connection
-   // get "seq" sequencer
-   // check if queue has newer messages than seq
-   //	send new queue
-   // else
-   //   rember connection for client
-   //   set timeout for connection to responde to it
-   setTimeout(function () { res.send({ result:204, data:"I am bored" }); },POLL_TIMEOUT*1000);
+   oq.new_connection(req,res);
 }
 
 function ca_start(req,res)
