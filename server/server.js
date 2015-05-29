@@ -105,6 +105,7 @@ function online_queue_class()
 	// Returns: the new or current seq
     this.add_session = function(username,sessionid)
     {
+	logdebug("adding session "+sessionid+" for user "+username);
 	if (!username) return false;
 	var u=queues[username];
 	if (u) 
@@ -113,7 +114,7 @@ function online_queue_class()
 	    return u.seq;
 	}
 	queues[username]={ username: username, sessions:{}, seq:1 };
-	queues[username].sessoins[sessionid]={acked:1, connection:false };
+	queues[username].sessions[sessionid]={acked:1, connection:false };
 	return 1;
     }
 
@@ -153,7 +154,7 @@ function online_queue_class()
 	var sessionid=req.session.id;
 	if (!username || !sessionid) { console.log("Invalid connections in new_connection"); return false; }
 	var q=queues[username];
-	if (!q) { console.log("No shuch user in new_connection"); return false; }
+	if (!q) { console.log("No such user in new_connection "+username); return false; }
   	var s=q.sessions[sessionid];
 	if (!s) { console.log("No shuch user in new_connection"); return false; }
 	if (s.connection) // found old connection
@@ -161,12 +162,16 @@ function online_queue_class()
 	    if (s.connection.timeout) clearTimeout(s.connection.timeout); 
 	    s.connection.timeout=false;
 	    s.connection.send({ result:204, data:"Dropping old poll connection" });
+	    s.connection=false;
 	}
 	s.connection=res;
 
 	run_queue(q);
 
-        if (s.connection) s.connection.timeout=setTimeout(function () { s.connection.send({ result:204, data:"I am bored" }); },POLL_TIMEOUT*1000);
+        if (s.connection) 
+	    s.connection.timeout=setTimeout(function () { 
+		s.connection.send({ result:204, data:"I am bored" 
+	    }); s.connection=false; },POLL_TIMEOUT*1000);
 	return true;
     }
 
@@ -232,6 +237,7 @@ function ca_login(req,res)
 		if (!u) { res.send({result:401, data:"username or password wrong"}); return; }
 		session.init_session(req,res);
 		req.session.username=u.username;
+		oq.add_session(u.username,req.session.id);
 		res.send({result:200, data:"OK"});
 	    }));
     }
@@ -335,6 +341,6 @@ function run()
         var host = server.address().address;
         var port = server.address().port;
 
-        if (debug) logdebug('Example app listening at http://%s:%s', host, port);
+        if (debug) logdebug('WIO Server listening at http://%s:%s', host, port);
     });
 }

@@ -65,10 +65,10 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	the connection in the meantime (eg: nat firewall reboot, wlan reconnect, etc). If the
 	connection to the the server fails, or the server response with an result code other
 	than 200 (OK). The client must wait at least 1 second to reconnect to server. The client
-	should increase this retransmit intervall if the server repeatedly fails to responde 
+	should increase this retransmit interval if the server repeatedly fails to responde 
 	with result 200.
 
-	GET /clientapi/poll?seq=<lastseq>
+	GET /clientapi/poll?ack=<lastseq>
 	Return: result, [seq], [data], [retry_after]
 
         Resultcodes:

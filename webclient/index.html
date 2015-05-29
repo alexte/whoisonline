@@ -112,10 +112,42 @@
 	    }
 	}
 
+	var seq=1;
+
+	var error_retry_time_min=1500;
+	var error_retry_time_max=10000;
+	var error_retry_time=1500;
+
+	function poll_error_retry()
+	{
+	    set_online_status("offline");
+	    setTimeout(poll,error_retry_time);
+	    if (error_retry_time<error_retry_time_max) error_retry_time+=500;
+	}
+
+	function poll()
+	{
+		// didn't use the api() function, because we need different error handling
+	    $.getJSON("/clientapi/poll",{ack:seq},function (data) {
+		$("#conv_div").text(JSON.stringify(data,null,2));
+
+		if (!data.result) poll_error_retry(); 
+		if (data.result<400) { set_online_status("online"); error_retry_time=error_retry_time_min; }
+
+		if (data.result==200) setTimeout(poll,100);
+		else if (data.result==204) setTimeout(poll,100);
+		else if (data.result==503) setTimeout(poll,data.retry_after||2000);
+		else if (data.result==401) 
+		{ alert("Server asks for authentication..."); window.location="/login"; }
+		else poll_error_retry();
+	    }).fail(poll_error_retry);
+	}
+
 	$(document).ready(function(){
 	    api("start",false,function (data) {
 		$(".username").text(data.username);
 		if(data.now) last_poll=new Date(data.now);
+		if(data.seq) seq=data.seq;
 		$(".now").text(last_poll.toLocaleTimeString());
 		api("get_conversations",false,show_conversation_list);
 	    });
@@ -135,6 +167,7 @@
                 start_conversation($(event.target).parent().find("span").text());
             });
 	    add_omenu_entry("Logout",logout);
+	    poll();
 	});
     </script>
 </head>
