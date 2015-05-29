@@ -67,11 +67,12 @@
 	}
   
 	var search_timer=false;
+	var last_search="";
 
 	function delayed_add_dialog_search()
 	{
 	    if (search_timer) clearTimeout(search_timer);
-	    search_timer=setTimeout(function () { search_timer=false; add_dialog_search(); },1500);
+	    search_timer=setTimeout(function () { search_timer=false; add_dialog_search(); },1000);
 	}
 
 	function show_search_result(data)
@@ -89,7 +90,10 @@
 	{
 	    if (search_timer) clearTimeout(search_timer);
 	    search_timer=false;
-	    api("search_user",{ search: $("#searchword").val()}, show_search_result);
+	    var word=$("#searchword").val();
+	    if (word.length<1 || word==last_search) return;
+	    last_search=word;
+	    api("search_user",{ search: word }, show_search_result);
 	}
 
 	function start_conversation(username)
@@ -131,14 +135,15 @@
 	    $.getJSON("/clientapi/poll",{ack:seq},function (data) {
 		$("#conv_div").text(JSON.stringify(data,null,2));
 
-		if (!data.result) poll_error_retry(); 
+		if (data.seq) seq=data.seq;
+		if (!data.result) { poll_error_retry(); return; }
+
 		if (data.result<400) { set_online_status("online"); error_retry_time=error_retry_time_min; }
 
 		if (data.result==200) setTimeout(poll,100);
 		else if (data.result==204) setTimeout(poll,100);
 		else if (data.result==503) setTimeout(poll,data.retry_after||2000);
-		else if (data.result==401) 
-		{ alert("Server asks for authentication..."); window.location="/login"; }
+		else if (data.result==401) { alert("Server asks for authentication..."); window.location="/login"; }
 		else poll_error_retry();
 	    }).fail(poll_error_retry);
 	}

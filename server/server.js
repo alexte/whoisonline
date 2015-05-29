@@ -113,8 +113,8 @@ function online_queue_class()
 	    u.sessions[sessionid]={ acked:u.seq, connection:false };
 	    return u.seq;
 	}
-	queues[username]={ username: username, sessions:{}, seq:1 };
-	queues[username].sessions[sessionid]={acked:1, connection:false };
+	queues[username]={ username: username, sessions:{}, seq:1, msgs:[] };
+	queues[username].sessions[sessionid]={ acked:1, connection:false };
 	return 1;
     }
 
@@ -134,16 +134,19 @@ function online_queue_class()
     {
 	for(var id in q.sessions)
 	{
+	    logdebug("running queue for "+q.username+" "+id);
 	    var s=q.sessions[id];
-	    if (s.acked<s.seq && s.connection)
+	    logdebug("    session "+s);
+	    logdebug("    msgs "+(q.seq-s.acked)+" "+(s.connection?"CON":"NOCON"));
+	    if (s.acked<q.seq && s.connection)
 	    {
 		var msgs=[];
-		for(i=0;i<q.msgs.length;i++) 
+		for(var i=0;i<q.msgs.length;i++) 
 		    if (q.msgs[i].seq>s.acked) msgs.push(q.msgs[i].msg);
 		clearTimeout(s.connection.timeout);
 		s.connection.timeout=false;
-		s.connection.send({ seq:s.seq, msgs:msgs });
-		s.connection==false;
+		s.connection.send({ result:200, seq:q.seq, msgs:msgs });
+		s.connection=false;
 	    }
 	}
     }
@@ -165,6 +168,9 @@ function online_queue_class()
 	    s.connection=false;
 	}
 	s.connection=res;
+
+	if (req.query.ack) s.acked=req.query.ack;
+	else console.log("poll error from "+username+ ": ack missing");
 
 	run_queue(q);
 
@@ -253,7 +259,7 @@ function ca_logout(req,res)
 
 function ca_poll(req,res)
 {
-   oq.new_connection(req,res);
+    oq.new_connection(req,res);
 }
 
 function ca_start(req,res)
@@ -294,7 +300,7 @@ function ca_start_conversation(req,res)
     if (!username) { res.send({result:400, data:"invalid call"}); return; } 
 
     db.add_conversation(req.session.username,username);
-    // spool(req.session.username,username,"start_conversation");
+    oq.add_message(req.session.username,{ type: "add_conversation", username: username });
 
     res.send({result:200, data:"sent" });
 }
