@@ -129,6 +129,11 @@
 	    if (error_retry_time<error_retry_time_max) error_retry_time+=500;
 	}
 
+	function handle_msgs(d)
+	{
+	    
+	}
+
 	function poll()
 	{
 		// didn't use the api() function, because we need different error handling
@@ -140,7 +145,7 @@
 
 		if (data.result<400) { set_online_status("online"); error_retry_time=error_retry_time_min; }
 
-		if (data.result==200) setTimeout(poll,100);
+		if (data.result==200) { handle_msgs(data); setTimeout(poll,100); }
 		else if (data.result==204) setTimeout(poll,100);
 		else if (data.result==503) setTimeout(poll,data.retry_after||2000);
 		else if (data.result==401) { alert("Server asks for authentication..."); window.location="/login"; }
@@ -172,7 +177,7 @@
                 start_conversation($(event.target).parent().find("span").text());
             });
 	    add_omenu_entry("Logout",logout);
-	    poll();
+	    setTimeout(poll,100);
 	});
     </script>
 </head>

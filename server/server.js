@@ -194,12 +194,10 @@ function online_queue_class()
 
     // this.remove_message = function .... do we need this ?
 
-    this.ack_message = function(username,sessionid,seq)
+    this.get_seq_by_username = function(username)
     {
 	if (!queues[username]) return false;
-	if (!queues[username].sessions[sessionid]) return false;
-	queues[username].sessions[sessionid].acked=seq;
-	return true;
+	return queues[username].seq;
     }
 
     function remove_queue(username) { delete queues[username]; }
@@ -209,26 +207,6 @@ function online_queue_class()
 }
 
 var oq=new online_queue_class();
-
-
-// ------- spooler 
-
-function spool(from,to,type,data)
-{
-    // TODO
-	// save to "from" queue 
-	// save to database for "from"
-	// push to "to" queue 
-	// save to database for "to"
-}
-
-function queue_to(msg)
-{
-}
-
-function queue_from(msg)
-{
-}
 
 // ------ clientapi functions
 function ca_login(req,res)
@@ -266,7 +244,8 @@ function ca_start(req,res)
 {
     var r={ result:200, now: new Date() };
 
-    r.seq=1; // TODO get current seq number of this user if she is logged in twice 
+	// get current seq number of this user if she is logged in twice 
+    r.seq=oq.get_seq_by_username(req.session.username); 
     r.username=req.session.username;
     // r.fullname=get_fullname_by_username(req.session.username));
 
