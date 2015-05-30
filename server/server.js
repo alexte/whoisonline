@@ -28,13 +28,13 @@ function run_serialized(f)
     function run_next()
     {
 	i++;
-	f[i](run_next);
+	if (f[i]) f[i](run_next);
     }
 
     f[0](run_next);
 }
 
-run_serialized([read_config,parse_arguments,db_init,run]);
+run_serialized([read_config,parse_arguments,db_init,run,background_jobs]);
 
 // -------------- logfile
 
@@ -118,17 +118,25 @@ function online_queue_class()
 	return 1;
     }
 
-    this.remove_session = function(sessionid)
+    this.remove_sessions = function(sessionids)
+    {
+	for (var i=0;i<sessionids;i++) 
+	    remove_session(sessionids[i]);
+    }
+
+    function remove_session(sessionid)
     {
 	for (var username in queues) 
 	{
    	    if (queues.hasOwnProperty(username)) 
 	    {
-		delete queues[username].sessions[sessionid];
+		if (queues[username].sessions[sessionid])
+		    delete queues[username].sessions[sessionid];
 		if (queues[username].sessions.length==0) remove_queue(username);
     	    }
 	}
     }
+    this.remove_session = remove_session;
 
     function run_queue(q)
     {
@@ -231,6 +239,7 @@ function ca_login(req,res)
 
 function ca_logout(req,res)
 {
+    oq.remove_session(req.session.id);
     session.remove_session(req.session);
     res.send({result:200, data:"OK"});
 }
@@ -319,7 +328,7 @@ app.get("/login",function (req,res) {
 });
 
 // --------------------------
-function run()
+function run(next)
 {
     var server = app.listen(config.port||8042, function () {
 
@@ -327,5 +336,17 @@ function run()
         var port = server.address().port;
 
         if (debug) logdebug('WIO Server listening at http://%s:%s', host, port);
+	next();
     });
+}
+
+function idle_logout()
+{
+    oq.remove_sessions(session.remove_old_sessions((config.idletime||60)*1000));
+}
+
+function background_jobs(next)
+{
+    setInterval(idle_logout,10000);
+    next();
 }

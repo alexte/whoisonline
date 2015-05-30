@@ -38,16 +38,17 @@ module.exports = function()
     };
 
     // remove session by session_id or session object
-    this.remove_session = function(o)
+    function remove_session(o)
     {
         if (!o) return false;
         if (sesslist[o]) { delete sesslist[o]; return true; }
         if (o.id && sesslist[o.id]) { delete sesslist[o.id]; return true; }
         return false;
     };
+    this.remove_session=remove_session;
 
     // returns array of sessionid, of sessions not used in the lasts idletime seconds
-    this.get_old_sessions = function(idletime)
+    this.remove_old_sessions = function(idletime)
     {
 	var t=Date.now()/1000-idletime;
  	var old=[];
@@ -55,7 +56,13 @@ module.exports = function()
 	for (var id in sesslist)
 	{
 	    if (sesslist.hasOwnProperty(id))
-		if (sesslist[id].last_used<t) old.push(id);
+	    {
+		if (sesslist[id].last_used<t) 
+		{
+		    old.push(id);
+		    remove_session(id);
+		}
+	    }
 	}
 	return old;
     }
