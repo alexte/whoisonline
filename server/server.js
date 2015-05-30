@@ -342,7 +342,7 @@ function run(next)
 
 function idle_logout()
 {
-    oq.remove_sessions(session.remove_old_sessions((config.idletime||60)*1000));
+    oq.remove_sessions(session.remove_old_sessions(config.idletime||60));
 }
 
 function background_jobs(next)

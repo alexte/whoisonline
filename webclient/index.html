@@ -9,6 +9,22 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>
+
+	var toast_timer=false;
+
+	function toast(info)
+	{
+	    if (toast_timer) clearTimeout(toast_timer);
+	    var t=$("div#toast");
+	    t.stop().fadeIn(800);
+	    t.append(info+"<br>");
+
+	    toast_timer=setTimeout(function () {
+		toast_timer=false;
+		t.stop().fadeOut(800,function () { t.empty(); });
+	    },3000);
+	}
+
 	function set_online_status(w)
 	{
 	    if (w=="online") $(".online_status").addClass("online").removeClass("offline");
@@ -112,7 +128,7 @@
 	    $("#convlist").empty();
 	    for (var i=0;i<conversations.length;i++)
 	    {
-		$("#convlist").append("<li>"+conversations[i].to+"</li>");
+		add_conversation(conversations[i].to);
 	    }
 	}
 
@@ -129,9 +145,19 @@
 	    if (error_retry_time<error_retry_time_max) error_retry_time+=500;
 	}
 
-	function handle_msgs(d)
+	function add_conversation(username)
 	{
-	    
+	    $("#convlist").append("<li>"+username+"</li>");
+	}
+
+	function handle_msgs(msgs)
+	{
+	    for(var i=0;i<msgs.length;i++)
+	    {
+		var m=msgs[i];
+	    	if (m["type"]=="add_conversation")  add_conversation(m["username"]);
+	    	else toast("unknwon msg type: "+m["type"]);
+	    }
 	}
 
 	function poll()
@@ -145,7 +171,7 @@
 
 		if (data.result<400) { set_online_status("online"); error_retry_time=error_retry_time_min; }
 
-		if (data.result==200) { handle_msgs(data); setTimeout(poll,100); }
+		if (data.result==200) { handle_msgs(data.msgs); setTimeout(poll,100); }
 		else if (data.result==204) setTimeout(poll,100);
 		else if (data.result==503) setTimeout(poll,data.retry_after||2000);
 		else if (data.result==401) { alert("Server asks for authentication..."); window.location="/login"; }
@@ -208,6 +234,8 @@
     Select a conversation int the conversation list.
 </div>
 <div id=omenu>
+</div>
+<div id=toast>
 </div>
 </body>
 </html>

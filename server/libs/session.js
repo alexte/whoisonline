@@ -41,6 +41,7 @@ module.exports = function()
     function remove_session(o)
     {
         if (!o) return false;
+	console.log("removing session "+JSON.stringify(o));
         if (sesslist[o]) { delete sesslist[o]; return true; }
         if (o.id && sesslist[o.id]) { delete sesslist[o.id]; return true; }
         return false;
