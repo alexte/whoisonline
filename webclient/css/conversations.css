@@ -6,6 +6,7 @@ body, html { height: 100%; margin:0; padding:0; }
 div#header { position:absolute; top:0; left:0; right:0; height:2.4em; 
 	     overflow:hidden; padding: 0.2em;
 	     background-color: #A11; color: #fff;
+	     box-shadow: 0px 0px 12px 2px #000;
 	   }
 div#header h1.logo { margin:0.2em; font-size:1.5em; }
 div#header div#status  { font-size: 0.8em; position:absolute; top:0.5em; right:0.5em; text-align:right; }
@@ -15,23 +16,27 @@ div#status div.username { position: absolute; top:1.4em; right: 3em;  }
 
 div#convlist_div 
             {   position: absolute; top: 2.8em; bottom: 0; left: 0; width: 14em; 
-		border-right: 0.2em double #A11; background-color:#FAA; }
-ul.convlist {   margin:0; padding:0.3em;
+		background-color:#A11; color:#FFF; }
+ul#convlist {   margin-left:1em; padding:0.3em;
 		list-style-type: none; 
 	    }
-ul.convlist li { margin:0.1em; }
+ul#convlist li { margin:0.5em; }
+
+ul#convlist li:hover::before { position:absolute; margin-left:-1.1em; content: ">" }
 
 div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 14.2em; right: 0; }
 
-div#omenu { position:absolute; top:2.3em; right:0.2em; padding:0.4em; 
-	    text-align:center; border: 3px solid black; background-color: #FFF; }
+div#omenu { position:absolute; top:2.8em; right:0.3em; padding:0.4em; 
+	    text-align:center; border: none; 
+	    background-color: #A11; color:#FFF; box-shadow: 0px 0px 10px 2px #000;
+	  }
 
-button.menubutton { background-color:transparent; border:none }
+button.menubutton { background-color:transparent; border:none; color:#FFF; }
 
-i#add_conv { position:absolute; right:0.2em; top:0.2em; text-shadow: 1px 1px 10px #FAA; color:#A11; font-size:2em; }
+i#add_conv { position:absolute; right:0.4em; top:0.2em; text-shadow: 1px 1px 10px #000; font-size:2em; }
 
 #add_conv_dialog { display:none; margin:0.1em; padding:0.2em; 
-		   background-color: #E99; border: 2px solid #A11; 
+		   background-color: #B66; border: 2px solid #A11; 
 		   text-align: justify;
 		 }
 
