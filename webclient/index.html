@@ -85,8 +85,8 @@
 	function generate_list_item(u)
 	{
 	    var el="";
-	    if (u.fullname) el+="<span class=fullname_list>"+u.fullname+"</span><br>";
-	    el+="<span class=username_list>"+u.username+"</span>";
+	    if (u.name) el+="<span class=le_name>"+u.name+"</span><br>";
+	    el+="<span class=le_address>"+u.address+"</span>";
 	    return el;
 	}
 
@@ -101,12 +101,12 @@
 
 	function show_search_result(data)
 	{
-	    var ul=data.userlist;
+	    var ul=data.identities;
 	    $("#add_search_result").empty();
 	    if (ul) for (var i=0;i<ul.length;i++)
 	    {
-		if (ul[i].username) $("#add_search_result").append("<li class=user_list_item>"+generate_list_item(ul[i])+
-				      " <i class=\"add_conv_username fa fa-plus-circle\"></i></li>");
+		if (ul[i].address) $("#add_search_result").append("<li class=user_list_item>"+generate_list_item(ul[i])+
+			             " <i class=\"add_conv_username fa fa-plus-circle\"></i></li>");
 	    }
 	}
 
@@ -120,10 +120,10 @@
 	    api("search_user",{ search: word }, show_search_result);
 	}
 
-	function start_conversation(username)
+	function start_conversation(address)
 	{
-	    if (username.length<5) return;
-	    api("start_conversation",{ username: username },function(data) {
+	    if (address.length<5) return;
+	    api("start_conversation",{ address: address },function(data) {
                 $("#add_conv").show();
                 $("#add_conv_dialog").hide();
 	    });
@@ -153,9 +153,9 @@
 	    if (error_retry_time<error_retry_time_max) error_retry_time+=500;
 	}
 
-	function add_conversation(user)
+	function add_conversation(identity)
 	{
-	    $("#convlist").append("<li>"+generate_list_item(user)+"</li>");
+	    $("#convlist").append("<li>"+generate_list_item(identity)+"</li>");
 	}
 
 	function handle_msgs(msgs)
@@ -163,7 +163,7 @@
 	    for(var i=0;i<msgs.length;i++)
 	    {
 		var m=msgs[i];
-	    	if (m["type"]=="add_conversation")  add_conversation(m["user"]);
+	    	if (m["type"]=="add_conversation")  add_conversation(m["identity"]);
 	    	else toast("unknwon msg type: "+m["type"]);
 	    }
 	}
@@ -234,7 +234,7 @@
 	    $("#searchword").change(delayed_add_dialog_search).keypress(delayed_add_dialog_search);
 	    $("#do_search").click(add_dialog_search);
 	    $('#add_search_result').on('click','.add_conv_username', function (event) {
-                start_conversation($(event.target).parent().find("span.username_list").text());
+                start_conversation($(event.target).parent().find("span.le_address").text());
             });
 	    $("#list_size_handle").click(function () {
 		if (layout_list_minimized) maximize_list(); else minimize_list();

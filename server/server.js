@@ -266,12 +266,12 @@ function ca_search_user(req,res)
     var sw=req.query.search;
     if (!sw) { res.send({result:400, data:"invalid call (s)"}); return; } 
 
-    r={result:200, userlist:[] };
+    r={result:200, identities:[] };
     if (valid_username(sw)) 
     {
-	r.userlist[0]={};
-	r.userlist[0].fullname="Max Mustermann";
-	r.userlist[0].username=sw;
+	r.identities[0]={};
+	r.identities[0].name="Max Mustermann";
+	r.identities[0].address=sw;
     }
     res.send(r);
 }
@@ -285,12 +285,12 @@ function ca_get_conversations(req,res)
 
 function ca_start_conversation(req,res)
 {
-    var username=req.body.username;
-    if (!username) { res.send({result:400, data:"invalid call"}); return; } 
+    var address=req.body.address;
+    if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
-    var user={ username: username, fullname: "Max Mustermann" }; // TODO fullname
-    db.add_conversation(req.session.username,user);
-    oq.add_message(req.session.username,{ type: "add_conversation", user: user });
+    var identity={ address: address, name: "Max Mustermann" }; // TODO fullname
+    db.add_conversation(req.session.username,identity);
+    oq.add_message(req.session.username,{ type: "add_conversation", identity: identity });
 
     res.send({result:200, data:"sent" });
 }

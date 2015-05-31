@@ -11,7 +11,8 @@ To reduce the risk of session cookie theft the cookie should be set with "; Secu
 (or ";HttpOnly" in case of nonHTTPS) to prevent javascript code to sniff session information.
 [RFC6265].
 
-If the commando includes data from the client the HTTP request looks like this
+If the commando includes data from the client that changes server states, the HTTP request 
+looks like this:
 	POST /clientapi/<cmd>
 and the client data ist sent as POST data in JSON format. The HTTP response
 should be a normal "200 OK" response, and include the data in JSON format.
@@ -93,8 +94,8 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 		{ result:204, data:"I am bored" }
 		{ result:503, retry_after: 30 }
 	
- - Get user profile:
-	GET /clientapi/profile/<username>
+ - Get identity profile:
+	GET /clientapi/profile/<identityaddress>
 	Return: result, data : profile (JSON)
 
 	Resultcodes:
@@ -103,7 +104,7 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	    404 User not found
 
 	If a user hides her profile, the server may return ether 403 or 404.
-	If <username> is "me", the profile of the requesting user is returned
+	If <identityaddress> is "me", the profile of the requesting user is returned
 	
  - Get get_conversations:
 	GET /clientapi/get_conversations[?skipto=<n>]
