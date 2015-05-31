@@ -82,6 +82,14 @@
 	    entry.appendTo("#omenu").click(func);
 	}
   
+	function generate_list_item(u)
+	{
+	    var el="";
+	    if (u.fullname) el+="<span class=fullname_list>"+u.fullname+"</span><br>";
+	    el+="<span class=username_list>"+u.username+"</span>";
+	    return el;
+	}
+
 	var search_timer=false;
 	var last_search="";
 
@@ -97,8 +105,8 @@
 	    $("#add_search_result").empty();
 	    if (ul) for (var i=0;i<ul.length;i++)
 	    {
-		if (ul[i].username) $("#add_search_result").append("<li><span>"+ul[i].username+"</span> "+
-				      "<i class=\"add_conv_username fa fa-plus-circle\"></i></li>");
+		if (ul[i].username) $("#add_search_result").append("<li class=user_list_item>"+generate_list_item(ul[i])+
+				      " <i class=\"add_conv_username fa fa-plus-circle\"></i></li>");
 	    }
 	}
 
@@ -145,9 +153,9 @@
 	    if (error_retry_time<error_retry_time_max) error_retry_time+=500;
 	}
 
-	function add_conversation(username)
+	function add_conversation(user)
 	{
-	    $("#convlist").append("<li>"+username+"</li>");
+	    $("#convlist").append("<li>"+generate_list_item(user)+"</li>");
 	}
 
 	function handle_msgs(msgs)
@@ -155,7 +163,7 @@
 	    for(var i=0;i<msgs.length;i++)
 	    {
 		var m=msgs[i];
-	    	if (m["type"]=="add_conversation")  add_conversation(m["username"]);
+	    	if (m["type"]=="add_conversation")  add_conversation(m["user"]);
 	    	else toast("unknwon msg type: "+m["type"]);
 	    }
 	}
@@ -181,21 +189,28 @@
 
 	layout_list_minimized=false;
 
+	function minimize_list()
+	{
+	    if (layout_list_minimized) return;
+	    layout_list_minimized=true;
+	    $("#convlist_div").animate({left:"-12.3em"});
+	    $("#conv_div").animate({left:"1.9em"});
+	    $("#list_size_handle").toggleClass("fa-spin");
+	    setTimeout(function () {$("#list_size_handle").toggleClass("fa-spin fa-arrow-circle-left fa-arrow-circle-right");},400);
+	}
+
+	function maximize_list()
+	{
+	    if (!layout_list_minimized) return;
+	    layout_list_minimized=false;
+	    $("#convlist_div").animate({left:0});
+	    $("#conv_div").animate({left:"14.2em"});
+	    $("#list_size_handle").toggleClass("fa-spin");
+	    setTimeout(function () {$("#list_size_handle").toggleClass("fa-spin fa-arrow-circle-left fa-arrow-circle-right");},400);
+	}
+
 	function layout(mode)
 	{
-	    if(mode=="smooth")
-	    {
-	    	if(layout_list_minimized)  
-		{
-		    $("#convlist_div").animate({left:"-12.3em"});
-		    $("#conv_div").animate({left:"1.9em"});
-		}
-	    	if(!layout_list_minimized) 
-		{
-		    $("#convlist_div").animate({left:0});
-		    $("#conv_div").animate({left:"14.2em"});
-		}
-	    }
 	}
 
 	$(document).ready(function(){
@@ -219,12 +234,10 @@
 	    $("#searchword").change(delayed_add_dialog_search).keypress(delayed_add_dialog_search);
 	    $("#do_search").click(add_dialog_search);
 	    $('#add_search_result').on('click','.add_conv_username', function (event) {
-                start_conversation($(event.target).parent().find("span").text());
+                start_conversation($(event.target).parent().find("span.username_list").text());
             });
 	    $("#list_size_handle").click(function () {
-		layout_list_minimized=!layout_list_minimized;
-		$("#list_size_handle").toggleClass("fa-arrow-circle-left fa-arrow-circle-right");
-		layout("smooth");
+		if (layout_list_minimized) maximize_list(); else minimize_list();
 	    });
 	    add_omenu_entry("Logout",logout);
 	    setTimeout(poll,100);

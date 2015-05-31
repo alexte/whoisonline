@@ -144,8 +144,8 @@ function online_queue_class()
 	{
 	    logdebug("running queue for "+q.username+" "+id);
 	    var s=q.sessions[id];
-	    logdebug("    session "+s);
-	    logdebug("    msgs "+(q.seq-s.acked)+" "+(s.connection?"CON":"NOCON"));
+	    // logdebug("    session "+s);
+	    // logdebug("    msgs "+(q.seq-s.acked)+" "+(s.connection?"CON":"NOCON"));
 	    if (s.acked<q.seq && s.connection)
 	    {
 		var msgs=[];
@@ -270,6 +270,7 @@ function ca_search_user(req,res)
     if (valid_username(sw)) 
     {
 	r.userlist[0]={};
+	r.userlist[0].fullname="Max Mustermann";
 	r.userlist[0].username=sw;
     }
     res.send(r);
@@ -287,8 +288,9 @@ function ca_start_conversation(req,res)
     var username=req.body.username;
     if (!username) { res.send({result:400, data:"invalid call"}); return; } 
 
-    db.add_conversation(req.session.username,username);
-    oq.add_message(req.session.username,{ type: "add_conversation", username: username });
+    var user={ username: username, fullname: "Max Mustermann" }; // TODO fullname
+    db.add_conversation(req.session.username,user);
+    oq.add_message(req.session.username,{ type: "add_conversation", user: user });
 
     res.send({result:200, data:"sent" });
 }
