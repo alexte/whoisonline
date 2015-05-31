@@ -179,6 +179,25 @@
 	    }).fail(poll_error_retry);
 	}
 
+	layout_list_minimized=false;
+
+	function layout(mode)
+	{
+	    if(mode=="smooth")
+	    {
+	    	if(layout_list_minimized)  
+		{
+		    $("#convlist_div").animate({left:"-12.3em"});
+		    $("#conv_div").animate({left:"1.9em"});
+		}
+	    	if(!layout_list_minimized) 
+		{
+		    $("#convlist_div").animate({left:0});
+		    $("#conv_div").animate({left:"14.2em"});
+		}
+	    }
+	}
+
 	$(document).ready(function(){
 	    api("start",false,function (data) {
 		$(".username").text(data.username);
@@ -202,6 +221,11 @@
 	    $('#add_search_result').on('click','.add_conv_username', function (event) {
                 start_conversation($(event.target).parent().find("span").text());
             });
+	    $("#list_size_handle").click(function () {
+		layout_list_minimized=!layout_list_minimized;
+		$("#list_size_handle").toggleClass("fa-arrow-circle-left fa-arrow-circle-right");
+		layout("smooth");
+	    });
 	    add_omenu_entry("Logout",logout);
 	    setTimeout(poll,100);
 	});
@@ -209,7 +233,6 @@
 </head>
 <body>
 <div id=convlist_div>
-    <i id=add_conv class="fa fa-plus-circle"></i>
     <div id=add_conv_dialog>
 	Search for user address:<br>
 	<input id=searchword> 
@@ -221,6 +244,8 @@
     <ul id=convlist>
 	<li>Loading...<i class="fa fa-circle-o-notch fa-spin"></i></li>
     </ul>
+    <i id=add_conv class="fa fa-plus-circle"></i>
+    <i id=list_size_handle class="fa fa-arrow-circle-left"></i>
 </div>
 <div id=conv_div>
     Select a conversation int the conversation list.

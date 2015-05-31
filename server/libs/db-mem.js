@@ -24,7 +24,7 @@ module.exports = function (full_config)
 	else username=login;
 	if (config.auth_method=='dummy' && login.length>=3 && login==password) 
 	{
-	    users[username]={ conversations:[] };
+	    if (!users[username]) users[username]={ conversations:[] };
 	    callback({ username:username });
 	}
 	else callback(false);
