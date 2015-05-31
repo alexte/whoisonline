@@ -1,8 +1,7 @@
 
 body, html { height: 100%; margin:0; padding:0; }
 
-/*  div { border: 1px solid green; }  */
-
+/* ----------------------------------- Header */
 div#header { position:absolute; top:0; left:0; right:0; height:2.4em; 
 	     overflow:hidden; padding: 0.2em;
 	     background-color: #A11; color: #fff;
@@ -13,39 +12,45 @@ div#header div#status  { font-size: 0.8em; position:absolute; top:0.5em; right:0
 i.option-menu { float:right; margin:0.18em; margin-left:0.4em; font-size:2em; }
 div#status div.now { position: absolute; top:0.2em; right: 3em; width:10em; }
 div#status div.username { position: absolute; top:1.4em; right: 3em;  }
+.online_status.online { color: #5D5; }
+.online_status.offline { color: #000; }
 
-div#convlist_div 
-            {   position: absolute; top: 2.8em; bottom: 0; left: 0; width: 14em; 
-		background-color:#A11; color:#FFF; }
-ul#convlist {   margin-left:1em; padding:0.3em;
-		list-style-type: none; 
-	    }
-ul#convlist li { margin:0.5em; }
 
-ul#convlist li:hover::before { position:absolute; margin-left:-1.1em; content: ">" }
-
-div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 14.2em; right: 0; }
+/* ----------------------------------- Burger Menu */
+button.menubutton { background-color:transparent; border:none; color:#FFF; }
 
 div#omenu { position:absolute; top:2.8em; right:0.3em; padding:0.4em; 
 	    text-align:center; border: none; 
 	    background-color: #A11; color:#FFF; box-shadow: 0px 0px 10px 2px #000;
 	  }
 
-button.menubutton { background-color:transparent; border:none; color:#FFF; }
+/* ----------------------------------- ConvList */
+div#convlist_div 
+            {   position: absolute; top: 2.8em; bottom: 0; left: 0; width: 14em; 
+		background-color:#A11; color:#FFF; box-shadow: 0px 0px 10px 2px #000;
+		padding:0;
+	    }
+
+ul#convlist {   margin-left:0; margin-right:0; padding:0; list-style-type: none; }
+ul#convlist li { border-left: 0.4em solid #A11; padding:0.4em; }
+ul#convlist li.active { border-left: 0.4em solid #FFF; color: #000; background-color:#FFF; }
+ul#convlist li:hover { border-left: 0.4em solid #7EE; }
 
 i#add_conv { position:absolute; right:0.4em; top:0.3em; text-shadow: 1px 1px 10px #000; font-size:2em; }
 i#list_size_handle { position:absolute; right:0.4em; bottom:0.3em; text-shadow: 1px 1px 10px #000; font-size:2em; }
 
-#add_conv_dialog { display:none; margin:0.1em; padding:0.2em; 
+#add_conv_dialog { display:none; margin:0.2em; padding:0.3em; 
 		   background-color: #B66; border: 2px solid #A11; 
 		   text-align: justify;
 		 }
-
 #add_search_result { list-style-type: none; padding-left: 0.3em; } 
+i#close_search { float:right; }
 
-.online_status.online { color: #5D5; }
-.online_status.offline { color: #000; }
+/* ----------------------------------- ConvFrame */
+div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 14.2em; right: 0; }
 
+
+/* ----------------------------------- Misc Widgets */
 div#toast { display:none; position:absolute; right:1em; bottom:1em; padding:1em; border-radius: 0.5em; 
 	    color:#000; background-color: rgba(180,180,180,0.5); }
 

@@ -212,6 +212,12 @@
 	function layout(mode)
 	{
 	}
+	
+	function select_conversation(event)
+	{
+	    $("#convlist li").removeClass("active");
+	    $(this).addClass("active");
+	}
 
 	$(document).ready(function(){
 	    api("start",false,function (data) {
@@ -236,6 +242,8 @@
 	    $('#add_search_result').on('click','.add_conv_username', function (event) {
                 start_conversation($(event.target).parent().find("span.le_address").text());
             });
+	    $('#convlist').on('click','li', select_conversation);
+
 	    $("#list_size_handle").click(function () {
 		if (layout_list_minimized) maximize_list(); else minimize_list();
 	    });
@@ -245,12 +253,16 @@
     </script>
 </head>
 <body>
+<div id=conv_div>
+    Select a conversation int the conversation list.
+</div>
 <div id=convlist_div>
     <div id=add_conv_dialog>
-	Search for user address:<br>
+	Search for user address:
+	<i id="close_search" class="fa fa-times"></i>
+	<br>
 	<input id=searchword> 
 	<i id="do_search" class="fa fa-search"></i>
-	<i id="close_search" class="fa fa-times"></i>
 	<ul id=add_search_result>
 	</ul>
     </div>
@@ -259,9 +271,6 @@
     </ul>
     <i id=add_conv class="fa fa-plus-circle"></i>
     <i id=list_size_handle class="fa fa-arrow-circle-left"></i>
-</div>
-<div id=conv_div>
-    Select a conversation int the conversation list.
 </div>
 <div id=header>
     <h1 class=logo>WhoisOnline <i class="online_status fa fa-at"></i> </h1>
