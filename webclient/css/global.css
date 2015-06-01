@@ -6,5 +6,7 @@
  * But for now this file is allmost empty ;-)
  */
 
-* { font-family: sans-serif; }
+* { font-family: 'Roboto', sans-serif; }
+
+button:hover { text-decoration: underline; }
 

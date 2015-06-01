@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" href="css/global.css">
     <link rel="stylesheet" type="text/css" href="css/conversations.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,400italic,700' rel='stylesheet' type='text/css'>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>
 
@@ -155,7 +156,9 @@
 
 	function add_conversation(identity)
 	{
-	    $("#convlist").append("<li>"+generate_list_item(identity)+"</li>");
+	    var element=$("<li>"+generate_list_item(identity)+"</li>");
+	    element.appendTo($("#convlist"));
+	    element[0].identity=identity;
 	}
 
 	function handle_msgs(msgs)
@@ -172,7 +175,7 @@
 	{
 		// didn't use the api() function, because we need different error handling
 	    $.getJSON("/clientapi/poll",{ack:seq},function (data) {
-		$("#conv_div").text(JSON.stringify(data,null,2));
+		$(".output").text(JSON.stringify(data,null,2));
 
 		if (data.seq) seq=data.seq;
 		if (!data.result) { poll_error_retry(); return; }
@@ -204,7 +207,7 @@
 	    if (!layout_list_minimized) return;
 	    layout_list_minimized=false;
 	    $("#convlist_div").animate({left:0});
-	    $("#conv_div").animate({left:"14.2em"});
+	    $("#conv_div").animate({left:"14em"});
 	    $("#list_size_handle").toggleClass("fa-spin");
 	    setTimeout(function () {$("#list_size_handle").toggleClass("fa-spin fa-arrow-circle-left fa-arrow-circle-right");},400);
 	}
@@ -212,11 +215,50 @@
 	function layout(mode)
 	{
 	}
+
 	
+	function frame_class(id)
+	{
+	    var target;
+	    var output=$("#chatwindow"+id+" .output");
+	    var window=$("#chatwindow"+id);
+	    if (output.length<=0) { toast("no such frame "+id); return false; }
+
+	    this.set_target = function(identity) 
+	    {
+		target=identity; 
+		output.text(JSON.stringify(identity));
+		window.find(".conv_selector").text("> "+identity.name+":");
+	    }
+
+	    this.focus = function() 
+	    {
+		window.find("input").focus();
+	    }
+	}
+
+	frames=[];
+
+	function get_frame(id)
+	{
+	    if (!frames[id]) frames[id]=new frame_class(id);
+	    return frames[id];
+	}
+
+	function open_conversation(identity,chatframeid)
+	{
+	    var frame=get_frame(chatframeid);
+
+	    frame.set_target(identity);
+	    frame.focus();
+	}
+
 	function select_conversation(event)
 	{
 	    $("#convlist li").removeClass("active");
-	    $(this).addClass("active");
+	    var c=$(this);
+	    c.addClass("active");
+	    open_conversation(this.identity,1);
 	}
 
 	$(document).ready(function(){
@@ -254,7 +296,14 @@
 </head>
 <body>
 <div id=conv_div>
-    Select a conversation int the conversation list.
+    <div class=chatwindow id=chatwindow1>
+	<div class=output></div>
+	<div class=entrybar>
+	    <span class=conv_selector>Input: </span> 
+	    <button class=send_button>Send</button>
+	    <span class=input_span><input type="text"></span>
+	</div>
+    </div>
 </div>
 <div id=convlist_div>
     <div id=add_conv_dialog>
@@ -280,9 +329,7 @@
 	<div class=username></div>
     </div>
 </div>
-<div id=omenu>
-</div>
-<div id=toast>
-</div>
+<div id=omenu></div>
+<div id=toast></div>
 </body>
 </html>

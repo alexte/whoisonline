@@ -36,6 +36,8 @@ ul#convlist li { border-left: 0.4em solid #A11; padding:0.4em; }
 ul#convlist li.active { border-left: 0.4em solid #FFF; color: #000; background-color:#FFF; }
 ul#convlist li:hover { border-left: 0.4em solid #7EE; }
 
+.le_address { font-style: italic; }
+
 i#add_conv { position:absolute; right:0.4em; top:0.3em; text-shadow: 1px 1px 10px #000; font-size:2em; }
 i#list_size_handle { position:absolute; right:0.4em; bottom:0.3em; text-shadow: 1px 1px 10px #000; font-size:2em; }
 
@@ -47,8 +49,21 @@ i#list_size_handle { position:absolute; right:0.4em; bottom:0.3em; text-shadow: 
 i#close_search { float:right; }
 
 /* ----------------------------------- ConvFrame */
-div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 14.2em; right: 0; }
+div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 14em; right: 0; }
 
+/* div#conv_div div { border: 1px solid green; } */
+
+.chatwindow { position: absolute; top:0; bottom:0; left:0; right:0; }
+.output { position: absolute; top:0; bottom:2em; left:0; right:0; }
+.entrybar { position: absolute; bottom:0; left:0; right:0; height:1.5em; overflow: hidden;
+	    box-shadow: 0px 0px 10px 2px #000; padding: 0.5em; }
+.conv_selector { margin-right:0.5em; float:left; }
+.send_button { margin-left:0.5em; float:right; }
+
+.input_span { display: block; overflow: hidden; }
+.entrybar input { width:100%;     
+		  -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+		}
 
 /* ----------------------------------- Misc Widgets */
 div#toast { display:none; position:absolute; right:1em; bottom:1em; padding:1em; border-radius: 0.5em; 

@@ -160,3 +160,9 @@ JSON object structures
  - List of conversations
 	TODO
 
+ - Identity: the identity data type is used on many different locations like conversation list, message send, message receiver, etc
+	identity: { 
+		name: "Full Name", 
+		address: "user@domain.tld" 
+	}
+
