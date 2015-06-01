@@ -1,5 +1,6 @@
 /*
  * WhoisOnline Node Server
+ * by Alexander Terczka
  */
 
 var debug=1;
@@ -36,11 +37,19 @@ function run_serialized(f)
 
 run_serialized([read_config,parse_arguments,db_init,run,background_jobs]);
 
-// -------------- logfile
+// -------------- logfile/tools
 
 function logdebug()
 {
     if (debug>0) console.log.apply(null,arguments);
+}
+
+function contains(arr,element)
+{
+    var i;
+    for (i=0;i<arr.length;i++)
+       if (arr[i]==element) return true;
+    return false;
 }
 
 // ------------ read config
@@ -273,14 +282,32 @@ function ca_start(req,res)
 function ca_search_user(req,res)
 {
     var sw=req.query.search;
+    var i;
+
     if (!sw) { res.send({result:400, data:"invalid call (s)"}); return; } 
 
-    r={result:200, identities:[] };
-    if (valid_address(sw)) 
+    r={ result:200, identities:[] };
+    i=sw.indexOf("@");
+    if (i>=0)    // user searches address
     {
-	r.identities[0]={};
-	r.identities[0].name="Max Mustermann";
-	r.identities[0].address=sw;
+	var domain=sw.substring(i+1);
+	if (contains(config.domains,domain))  // local domain
+	{
+	    db.search_user(sw,function (identities) {
+	    	r.identities=identities;
+		res.send(r); 
+	    });
+	    return;
+	}
+	// TODO else send error message to user
+    }
+    else  // user searches name ?
+    {
+	db.search_user(sw,function (identities) {
+            r.identities=identities;
+            res.send(r); 
+        });
+        return;
     }
     res.send(r);
 }
@@ -297,7 +324,8 @@ function ca_start_conversation(req,res)
     var address=req.body.address;
     if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
-    var identity={ address: address, name: "Max Mustermann" }; // TODO fullname
+    var identity={ address: address, name: address.substring(0,address.indexOf("@")) }; // TODO fullname
+
     db.add_conversation(req.session.username,identity);
     oq.add_message(req.session.username,{ type: "add_conversation", identity: identity });
 

@@ -22,9 +22,10 @@ module.exports = function (full_config)
 	    else { callback(false); return; }
 	}
 	else username=login;
+
 	if (config.auth_method=='dummy' && login.length>=3 && login==password) 
 	{
-	    if (!users[username]) users[username]={ conversations:[] };
+	    if (!users[username]) users[username]={ name:login, conversations:[] };
 	    callback({ username:username });
 	}
 	else callback(false);
@@ -40,6 +41,16 @@ module.exports = function (full_config)
     {
 	users[from].conversations.push({to:to});
 	if (callback) callback("OK"); 	// TODO what should this function return in the callback ?
+    }
+
+    this.search_user=function(sw,callback)
+    {
+	var username;
+   	var r=[];
+	for (username in users)
+	    if (username.indexOf(sw)>=0 || users[username].name.indexOf(sw)>=0) 
+		r.push({ address: username, name:users[username].name});
+	callback(r);
     }
 
     this.save_messages=function(message,callback)
