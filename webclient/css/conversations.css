@@ -64,9 +64,9 @@ div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 1
 .send_button { margin-left:0.5em; float:right; }
 
 .input_span { display: block; overflow: hidden; }
-.entrybar textarea { width:100%;     
-		  -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
-		}
+.entrybar textarea { width:100%; resize:vertical;
+		     -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+		   }
 
 /* ----------------------------------- Misc Widgets */
 div#toast { display:none; position:absolute; right:1em; bottom:1em; padding:1em; border-radius: 0.5em; 

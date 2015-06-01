@@ -286,6 +286,13 @@
             });
 	    $('#convlist').on('click','li', select_conversation);
 
+	    $('textarea').each(function () {
+  		    this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+		}).on('input', function () {
+  		    this.style.height = 'auto';
+  		    this.style.height = (this.scrollHeight) + 'px';
+		});
+
 	    $("#list_size_handle").click(function () {
 		if (layout_list_minimized) maximize_list(); else minimize_list();
 	    });
