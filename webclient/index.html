@@ -233,7 +233,7 @@
 
 	    this.focus = function() 
 	    {
-		window.find("input").focus();
+		window.find("textarea").focus();
 	    }
 	}
 
@@ -297,12 +297,16 @@
 <body>
 <div id=conv_div>
     <div class=chatwindow id=chatwindow1>
-	<div class=output></div>
-	<div class=entrybar>
-	    <span class=conv_selector>Input: </span> 
-	    <button class=send_button>Send</button>
-	    <span class=input_span><input type="text"></span>
-	</div>
+	<table>
+	<tr><td class=output></td></tr>
+	<tr><td>
+	    <div class=entrybar>
+	        <span class=conv_selector>Input: </span> 
+	        <button class=send_button>Send</button>
+	        <span class=input_span><textarea rows=1></textarea></span>
+	    </div>
+	</td></tr>
+	</table>
     </div>
 </div>
 <div id=convlist_div>
