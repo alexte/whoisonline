@@ -40,7 +40,7 @@
 	    return false;
 	}
 
-	var post_api_cmds=["start_conversation"];
+	var post_api_cmds=["send_message","start_conversation"];
 
 	function api(cmd,data,f)
 	{
@@ -167,6 +167,7 @@
 	    {
 		var m=msgs[i];
 	    	if (m["type"]=="add_conversation")  add_conversation(m["identity"]);
+	    	else if (m["type"]=="msg") dispatch(m["from"],m["to"],m["msg"]);
 	    	else toast("unknwon msg type: "+m["type"]);
 	    }
 	}
@@ -175,7 +176,7 @@
 	{
 		// didn't use the api() function, because we need different error handling
 	    $.getJSON("/clientapi/poll",{ack:seq},function (data) {
-		$(".output").text(JSON.stringify(data,null,2));
+		// $(".output").text(JSON.stringify(data,null,2));
 
 		if (data.seq) seq=data.seq;
 		if (!data.result) { poll_error_retry(); return; }
@@ -219,25 +220,42 @@
 	
 	function frame_class(id)
 	{
-	    var target;
-	    var output=$("#chatwindow"+id+" .output");
-	    var window=$("#chatwindow"+id);
+	    var target=false;
+	    var frameid=id;
+
+	    var output=$("#chatwindow"+frameid+" .output");
+	    var thisframe=$("#chatwindow"+frameid);
+
 	    if (output.length<=0) { toast("no such frame "+id); return false; }
+
+	    this.dispatch = function(from,to,msg)
+	    {
+		toast(target.address+" - "+from);
+		if (target.address==to) output.append("<b>you: "+msg+"<b><br>");
+		if (target.address==from) output.append(from+": "+msg+"<br>");
+	    }
 
 	    this.set_target = function(identity) 
 	    {
 		target=identity; 
-		output.text(JSON.stringify(identity));
-		window.find(".conv_selector").text("> "+identity.name+":");
+		// output.text(JSON.stringify(identity));
+		thisframe.find(".conv_selector").text("> "+identity.name+":");
+		thisframe[0].frameid=frameid;
+		thisframe[0].identity=identity;
 	    }
 
 	    this.focus = function() 
 	    {
-		window.find("textarea").focus();
+		thisframe.find("textarea").focus();
 	    }
 	}
 
 	frames=[];
+
+	function dispatch(from,to,msg)
+	{
+	    for(var i=0;i<frames.length;i++) if (frames[i]) frames[i].dispatch(from,to,msg);
+	}
 
 	function get_frame(id)
 	{
@@ -259,6 +277,20 @@
 	    var c=$(this);
 	    c.addClass("active");
 	    open_conversation(this.identity,1);
+	}
+
+	function send_message(e) 
+	{
+		// get chatwindow id from send_message event
+	    var chatwindow=$(e.target).parents(".chatwindow").first();
+	    if (!chatwindow[0]) { toast("Bummer! Don't know where this message should go to."); return false; }
+
+	    var identity=chatwindow[0].identity;
+	    if (!identity || !identity.address) { toast("Select conversation first!"); return false; }
+
+	    var msg=chatwindow.find(".chatinput").val();
+	    api("send_message",{ to:identity.address, msg:msg },function () { chatwindow.find(".chatinput").val(""); } );
+	    // chatwindow.find(".output").append("would send message \""+msg+"\" to "+identity.address+"<br>"); 
 	}
 
 	$(document).ready(function(){
@@ -286,12 +318,17 @@
             });
 	    $('#convlist').on('click','li', select_conversation);
 
-	    $('textarea').each(function () {
+		// dynamically resize textarea
+	    $('textarea.chatinput').each(function () {
   		    this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
 		}).on('input', function () {
   		    this.style.height = 'auto';
   		    this.style.height = (this.scrollHeight) + 'px';
 		});
+	    $("button.send_button").click(send_message);
+	    $("textarea.chatinput").keypress(function (e) { 
+		if (e.keyCode==13 && !event.shiftKey) { e.preventDefault(); send_message(e); }
+	    });
 
 	    $("#list_size_handle").click(function () {
 		if (layout_list_minimized) maximize_list(); else minimize_list();
@@ -310,7 +347,7 @@
 	    <div class=entrybar>
 	        <span class=conv_selector>Input: </span> 
 	        <button class=send_button>Send</button>
-	        <span class=input_span><textarea rows=1></textarea></span>
+	        <span class=input_span><textarea class=chatinput rows=1></textarea></span>
 	    </div>
 	</td></tr>
 	</table>

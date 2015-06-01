@@ -63,7 +63,7 @@ function parse_arguments(next)
     next();
 }
 
-function valid_username(w)
+function valid_address(w)
 {
     return w.match(/^[a-zA-Z0-9.#$%&*+/=?^_~-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$/);
 }
@@ -191,6 +191,7 @@ function online_queue_class()
 
     this.add_message = function(username,msg)
     {
+	logdebug("oq.add_message "+username+" "+msg);
 	if (!username || !queues[username]) return false;
 	var q=queues[username];
 	q.seq++;
@@ -215,6 +216,14 @@ function online_queue_class()
 }
 
 var oq=new online_queue_class();
+
+// ------ msg dispatcher
+function dispatch(from,to,msg)
+{
+    oq.add_message(to,{ type:"msg", from:from, to:to, msg:msg });
+    oq.add_message(from,{ type:"msg", from:from, to:to, msg:msg });
+	// TODO Write to offline queue (db)
+}
 
 // ------ clientapi functions
 function ca_login(req,res)
@@ -267,7 +276,7 @@ function ca_search_user(req,res)
     if (!sw) { res.send({result:400, data:"invalid call (s)"}); return; } 
 
     r={result:200, identities:[] };
-    if (valid_username(sw)) 
+    if (valid_address(sw)) 
     {
 	r.identities[0]={};
 	r.identities[0].name="Max Mustermann";
@@ -292,6 +301,18 @@ function ca_start_conversation(req,res)
     db.add_conversation(req.session.username,identity);
     oq.add_message(req.session.username,{ type: "add_conversation", identity: identity });
 
+    res.send({result:200, data:"done" });
+}
+
+function ca_send_message(req,res)
+{
+    var to=req.body.to;
+    var msg=req.body.msg;
+
+    if (msg.length==0) { res.send({result:200, data:"ignoring empty message" }); return; }
+    if (!valid_address(to)) { res.send({result:400, data:"receipient missing" }); return; }
+
+    dispatch(req.session.username,to,msg);
     res.send({result:200, data:"sent" });
 }
 
@@ -316,6 +337,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="start_conversation") ca_start_conversation(req,res); 
     else if (req.params.cmd=="get_conversations") ca_get_conversations(req,res);
     else if (req.params.cmd=="search_user") ca_search_user(req,res); 
+    else if (req.params.cmd=="send_message") ca_send_message(req,res); 
     else if (req.params.cmd=="poll") ca_poll(req,res); 
     else res.send({ result:404, data: 'unknown command'}); 
 });
