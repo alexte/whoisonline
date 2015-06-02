@@ -267,16 +267,24 @@ function ca_poll(req,res)
     oq.new_connection(req,res);
 }
 
+function get_identity_by_address(address,callback)
+{
+    // TODO identity cache
+    if (db.get_identity_by_address) db.get_identity_by_address(address,callback);
+    else callback({ address:address }); // nothing found
+}
+
 function ca_start(req,res)
 {
     var r={ result:200, now: new Date() };
 
 	// get current seq number of this user if she is logged in twice 
     r.seq=oq.get_seq_by_username(req.session.username); 
-    r.username=req.session.username;
-    // r.fullname=get_fullname_by_username(req.session.username));
 
-    res.send(r);
+    get_identity_by_address(req.session.username,function (identity) {
+        r.identity=identity;
+        res.send(r);
+    });
 }
 
 function ca_search_user(req,res)

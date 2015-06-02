@@ -121,13 +121,13 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 
  - Get startup infos:
 	GET /clientapi/start
-	Return: result, seq, username, now, 
-		OPTIONAL fullname, user gui prefs
+	Return: result, seq, identity, now, 
+		OPTIONAL user gui prefs
 
 	Resultcodes:
 		200 OK
 
-	"Username" is in <user>@<domain> format. 
+	"identity" standard identity object. If "name" is missing the client may ask for a fullname
 	"Now" is a javascript Date() object.
 	"Seq" is a sequence number that will be increased with every message received by poll.
 

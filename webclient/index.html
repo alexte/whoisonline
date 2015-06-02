@@ -293,9 +293,13 @@
 	    // chatwindow.find(".output").append("would send message \""+msg+"\" to "+identity.address+"<br>"); 
 	}
 
+	var me=false;
+
 	$(document).ready(function(){
 	    api("start",false,function (data) {
-		$(".username").text(data.username);
+		$(".username").text(data.identity.address);
+		me=data.identity;
+		// TODO ask for fullname if data.identity.name missing
 		if(data.now) last_poll=new Date(data.now);
 		if(data.seq) seq=data.seq;
 		$(".now").text(last_poll.toLocaleTimeString());
