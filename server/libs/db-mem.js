@@ -6,6 +6,7 @@
 module.exports = function (full_config)
 {
     var users={};
+    var msgs=[];
     var config=full_config["db-mem"];
 
     var messages=[];
@@ -25,7 +26,7 @@ module.exports = function (full_config)
 
 	if (config.auth_method=='dummy' && login.length>=3 && login==password) 
 	{
-	    if (!users[username]) users[username]={ name:login, conversations:[] };
+	    if (!users[username]) users[username]={ conversations:[] };
 	    callback({ username:username });
 	}
 	else callback(false);
@@ -40,7 +41,7 @@ module.exports = function (full_config)
     this.add_conversation=function(from,to,callback)
     {
 	users[from].conversations.push({to:to});
-	if (callback) callback("OK"); 	// TODO what should this function return in the callback ?
+	if (callback) callback(true);
     }
 
     this.search_user=function(sw,callback)
@@ -54,12 +55,42 @@ module.exports = function (full_config)
 	callback(r);
     }
 
-    this.save_messages=function(message,callback)
+    this.set_fullname=function(address,name)
     {
+	if (users[address]) users[address].name=name;
     }
 
+    this.get_identity_by_address=function(address,callback)
+    {
+	if (users[address] && users[address].name) callback({ address:address, name:users[address].name });
+	else callback({ address:address });
+    }
+
+    this.save_message=function(message,callback)
+    {
+	messages.timestamp=Date.now();
+	msgs.push(message);
+	if (callback) callback(true);
+    }
+
+	// fetch msgs from msgs store
+	// sample call:   
+	//	db.get_messages("alex@wio.at",{from:"alex@wio.at",to:"barbara@wio.at"},function (array) {...});
+	//	returns all messages from alex@wio.at to barbara@wio.at
     this.get_messages=function(user,selector,callback)
     {
+	var out=[];
+
+	for (var i=0;i<msgs.length;i++)   // TODO optimize msg search, user authorization for msg
+	{
+	    var ok=true;
+	    for (var f in selector)
+	    {
+		if (msgs[i][f]!=selector[f]) { ok=false; break; }
+	    }
+	    if (ok) out.push(msgs);
+	}
+	callback(out);
     }
 }
 

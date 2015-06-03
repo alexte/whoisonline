@@ -69,5 +69,10 @@ div#conv_div { position: absolute; padding:0.3em; top: 2.8em; bottom: 0; left: 1
 
 /* ----------------------------------- Misc Widgets */
 div#toast { display:none; position:absolute; right:1em; bottom:1em; padding:1em; border-radius: 0.5em; 
-	    color:#000; background-color: rgba(180,180,180,0.5); }
+	    color:#000; background-color: rgba(180,180,180,0.8); }
 
+div.dialog { position: fixed; top:100px; left:100px; color: #fff; background: #a11; border: 3px solid white; padding: 1em; margin: 1em; 
+             box-shadow: 0px 0px 12px 2px #000; display:none; }
+div.dialog p { margin-top:0.5em; }
+div.dialog input { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; width:100%; }
+div.dialog button { float:right; }

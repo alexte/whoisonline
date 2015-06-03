@@ -40,7 +40,7 @@
 	    return false;
 	}
 
-	var post_api_cmds=["send_message","start_conversation"];
+	var post_api_cmds=["set_fullname","send_message","start_conversation"];
 
 	function api(cmd,data,f)
 	{
@@ -293,13 +293,24 @@
 	    // chatwindow.find(".output").append("would send message \""+msg+"\" to "+identity.address+"<br>"); 
 	}
 
+	function set_fullname(event)
+	{
+	    var name=$(event.target).parents("div").find("input").val();
+	    api("set_fullname",{fullname:name},function () { $("#fullnamedialog").hide(); } );
+	}
+
 	var me=false;
 
 	$(document).ready(function(){
 	    api("start",false,function (data) {
 		$(".username").text(data.identity.address);
 		me=data.identity;
-		// TODO ask for fullname if data.identity.name missing
+		// ask for fullname if data.identity.name missing
+		if(!data.identity.name) 
+		{
+		    $("#fullnamedialog").fadeIn(400);
+		    $("#fullnamedialog input").focus();
+		}
 		if(data.now) last_poll=new Date(data.now);
 		if(data.seq) seq=data.seq;
 		$(".now").text(last_poll.toLocaleTimeString());
@@ -337,6 +348,7 @@
 	    $("#list_size_handle").click(function () {
 		if (layout_list_minimized) maximize_list(); else minimize_list();
 	    });
+	    $("#fullnamedialog button").click(set_fullname);
 	    add_omenu_entry("Logout",logout);
 	    setTimeout(poll,100);
 	});
@@ -383,5 +395,10 @@
 </div>
 <div id=omenu></div>
 <div id=toast></div>
+<div class=dialog id=fullnamedialog>
+   <p>What's your full name or nick ?</p>
+   <p><input></p>
+   <button>OK</button>
+</div>
 </body>
 </html>

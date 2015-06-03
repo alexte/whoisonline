@@ -229,9 +229,10 @@ var oq=new online_queue_class();
 // ------ msg dispatcher
 function dispatch(from,to,msg)
 {
-    oq.add_message(to,{ type:"msg", from:from, to:to, msg:msg });
-    oq.add_message(from,{ type:"msg", from:from, to:to, msg:msg });
-	// TODO Write to offline queue (db)
+    var o={ type:"msg", from:from, to:to, msg:msg };
+    oq.add_message(to,o);
+    oq.add_message(from,o);
+    db.save_message(o);
 }
 
 // ------ clientapi functions
@@ -332,12 +333,21 @@ function ca_start_conversation(req,res)
     var address=req.body.address;
     if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
-    var identity={ address: address, name: address.substring(0,address.indexOf("@")) }; // TODO fullname
+    get_identity_by_address(address,function (identity) {
+    	db.add_conversation(req.session.username,identity);
+    	oq.add_message(req.session.username,{ type: "add_conversation", identity: identity });
+    	res.send({result:200, data:"done" });
+    });
+}
 
-    db.add_conversation(req.session.username,identity);
-    oq.add_message(req.session.username,{ type: "add_conversation", identity: identity });
+function ca_set_fullname(req,res)
+{
+    var fullname=req.body.fullname;
 
-    res.send({result:200, data:"done" });
+    if (!fullname || fullname.length<1) { res.send({result:400, data:"fullname missing" }); return; }
+
+    db.set_fullname(req.session.username,fullname);
+    res.send({result:200, data:"saved" });
 }
 
 function ca_send_message(req,res)
@@ -374,6 +384,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="get_conversations") ca_get_conversations(req,res);
     else if (req.params.cmd=="search_user") ca_search_user(req,res); 
     else if (req.params.cmd=="send_message") ca_send_message(req,res); 
+    else if (req.params.cmd=="set_fullname") ca_set_fullname(req,res); 
     else if (req.params.cmd=="poll") ca_poll(req,res); 
     else res.send({ result:404, data: 'unknown command'}); 
 });
