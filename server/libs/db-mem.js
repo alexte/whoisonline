@@ -48,7 +48,8 @@ module.exports = function (full_config)
 	var username;
    	var r=[];
 	for (username in users)
-	    if (username.indexOf(sw)>=0 || users[username].name.indexOf(sw)>=0) 
+	    if (username.toLowerCase().indexOf(sw.toLowerCase())>=0 || 
+		users[username].name.toLowerCase().indexOf(sw.toLowerCase())>=0) 
 		r.push({ address: username, name:users[username].name});
 	callback(r);
     }
