@@ -238,10 +238,14 @@
 	    this.set_target = function(identity) 
 	    {
 		target=identity; 
-		// output.text(JSON.stringify(identity));
 		thisframe.find(".conv_selector").text("> "+identity.name+":");
 		thisframe[0].frameid=frameid;
 		thisframe[0].identity=identity;
+		output.html(identity.name+" <span class=address>("+identity.address+")</span> <hr>");
+		api("get_messages",{from:me.address,to:identity.address},function (data) {
+		    toast(JSON.stringify(data.msgs));
+		    handle_msgs(data.msgs);
+		});
 	    }
 
 	    this.focus = function() 

@@ -75,20 +75,39 @@ module.exports = function (full_config)
 
 	// fetch msgs from msgs store
 	// sample call:   
-	//	db.get_messages("alex@wio.at",{from:"alex@wio.at",to:"barbara@wio.at"},function (array) {...});
-	//	returns all messages from alex@wio.at to barbara@wio.at
-    this.get_messages=function(user,selector,callback)
+	//	db.get_messages("alex@wio.at",{from:"alex@wio.at",to:"barbara@wio.at"},count,function (array) {...});
+	//	returns count newst messages from alex@wio.at to barbara@wio.at
+	//	(count==0 : all messages)
+    this.get_messages=function(user,selector,count,callback)
     {
 	var out=[];
 
-	for (var i=0;i<msgs.length;i++)   // TODO optimize msg search, user authorization for msg
+	for (var i=msgs.length-1;i>=0;i--)   // TODO optimize msg search, user authorization for msg
 	{
 	    var ok=true;
 	    for (var f in selector)
 	    {
 		if (msgs[i][f]!=selector[f]) { ok=false; break; }
 	    }
-	    if (ok) out.push(msgs);
+	    if (ok) 
+	    {
+		out.push(msgs[i]);
+		if (count!=0) { count--; if (count==0) break; }
+	    }
+	}
+	callback(out);
+    }
+
+    this.get_messages_for_conversation=function(from,to,count,callback)
+    {
+	var out=[];
+
+	for (var i=msgs.length-1;i>=0;i--)   // TODO optimize msg search, user authorization for msg
+	{
+	    if ((msgs[i].from==from && msgs[i].to==to) || (msgs[i].to==from && msgs[i].from==to)) 
+	    { 	out.push(msgs[i]); 
+		if (count!=0) { count--; if (count==0) break; }
+	    }
 	}
 	callback(out);
     }

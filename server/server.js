@@ -362,6 +362,16 @@ function ca_send_message(req,res)
     res.send({result:200, data:"sent" });
 }
 
+function ca_get_messages(req,res)
+{
+    var from=req.query.from;
+    var to=req.query.to;
+
+    db.get_messages_for_conversation(from,to,0,function(msgs) {
+	res.send({result:200, msgs:msgs});
+    });
+}
+
 // ---- express middleware modules
 app.use(cookieParser());
 
@@ -384,6 +394,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="get_conversations") ca_get_conversations(req,res);
     else if (req.params.cmd=="search_user") ca_search_user(req,res); 
     else if (req.params.cmd=="send_message") ca_send_message(req,res); 
+    else if (req.params.cmd=="get_messages") ca_get_messages(req,res); 
     else if (req.params.cmd=="set_fullname") ca_set_fullname(req,res); 
     else if (req.params.cmd=="poll") ca_poll(req,res); 
     else res.send({ result:404, data: 'unknown command'}); 
