@@ -15,6 +15,10 @@ div#status div.username { position: absolute; top:1.4em; right: 3em;  }
 .online_status.online { color: #5D5; }
 .online_status.offline { color: #000; }
 
+div#action_icons { margin:0.3em; float: left; }
+i#add_conv { text-shadow: 1px 1px 10px #000; font-size:2em; }
+i#list_size_handle { text-shadow: 1px 1px 10px #000; font-size:2em; }
+
 
 /* ----------------------------------- Burger Menu */
 button.menubutton { background-color:transparent; border:none; color:#FFF; }
@@ -37,9 +41,6 @@ ul#convlist li.active { border-left: 0.4em solid #FFF; color: #000; background-c
 ul#convlist li:hover { border-left: 0.4em solid #7EE; }
 
 .le_address { font-style: italic; }
-
-i#add_conv { position:absolute; right:0.4em; top:0.3em; text-shadow: 1px 1px 10px #000; font-size:2em; }
-i#list_size_handle { position:absolute; right:0.4em; bottom:0.3em; text-shadow: 1px 1px 10px #000; font-size:2em; }
 
 #add_conv_dialog { display:none; margin:0.2em; padding:0.3em; 
 		   background-color: #B66; border: 2px solid #A11; 

@@ -200,7 +200,7 @@
 	    $("#convlist_div").animate({left:"-12.3em"});
 	    $("#conv_div").animate({left:"1.9em"});
 	    $("#list_size_handle").toggleClass("fa-spin");
-	    setTimeout(function () {$("#list_size_handle").toggleClass("fa-spin fa-arrow-circle-left fa-arrow-circle-right");},400);
+	    setTimeout(function () {$("#list_size_handle").toggleClass("fa-spin fa-chevron-circle-left fa-chevron-circle-right");},400);
 	}
 
 	function maximize_list()
@@ -210,7 +210,7 @@
 	    $("#convlist_div").animate({left:0});
 	    $("#conv_div").animate({left:"14em"});
 	    $("#list_size_handle").toggleClass("fa-spin");
-	    setTimeout(function () {$("#list_size_handle").toggleClass("fa-spin fa-arrow-circle-left fa-arrow-circle-right");},400);
+	    setTimeout(function () {$("#list_size_handle").toggleClass("fa-spin fa-chevron-circle-left fa-chevron-circle-right");},400);
 	}
 
 	function layout(mode)
@@ -305,6 +305,12 @@
 
 	var me=false;
 
+	function toggle_add_conv_dialog()
+	{
+            $("#add_conv").toggleClass("fa-times-circle fa-plus-circle");
+            $("#add_conv_dialog").toggle();
+	}
+
 	$(document).ready(function(){
 	    api("start",false,function (data) {
 		$(".username").text(data.identity.address);
@@ -323,8 +329,7 @@
 	    $("#omenu").hide();
 	    $(".option-menu").click(function () { $("#omenu").toggle(); });
 	    $("#add_conv").click(function () {
-		$("#add_conv").hide();
-		$("#add_conv_dialog").show();
+		toggle_add_conv_dialog();
 	    });
 	    $("#close_search").click(function () {
 		$("#add_conv").show();
@@ -386,10 +391,12 @@
     <ul id=convlist>
 	<li>Loading...<i class="fa fa-circle-o-notch fa-spin"></i></li>
     </ul>
-    <i id=add_conv class="fa fa-plus-circle"></i>
-    <i id=list_size_handle class="fa fa-arrow-circle-left"></i>
 </div>
 <div id=header>
+    <div id=action_icons>
+    	<i id=add_conv class="fa fa-plus-circle"></i>
+    	<i id=list_size_handle class="fa fa-chevron-circle-left"></i>
+    </div>
     <h1 class=logo>WhoisOnline <i class="online_status fa fa-at"></i> </h1>
     <div id=status>
 	<i class="option-menu fa fa-bars"></i>
