@@ -36,9 +36,14 @@ div#convlist_div
 	    }
 
 ul#convlist {   margin-left:0; margin-right:0; padding:0; list-style-type: none; }
-ul#convlist li { border-left: 0.4em solid #A11; padding:0.4em; }
+ul#convlist li { position:relative; border-left: 0.4em solid #A11; padding:0.4em; }
 ul#convlist li.active { border-left: 0.4em solid #FFF; color: #000; background-color:#FFF; }
 ul#convlist li:hover { border-left: 0.4em solid #7EE; }
+
+div.conv_status { position: absolute; right: 0; top: 0; bottom: 0; width: 1.6em;
+ 		  background: #5C5; font-size: 0.8em; color:#000;
+		}
+div.conv_status_text { margin:0.4em; transform-origin: 0.4em 0.6em; transform: rotate(90deg); }
 
 .le_address { font-style: italic; }
 

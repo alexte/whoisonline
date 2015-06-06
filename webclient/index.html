@@ -156,7 +156,8 @@
 
 	function add_conversation(identity)
 	{
-	    var element=$("<li>"+generate_list_item(identity)+"</li>");
+	    var element=$("<li>"+generate_list_item(identity)+
+			  "<div class=conv_status><div class=conv_status_text>new</div></div></li>");
 	    element.appendTo($("#convlist"));
 	    element[0].identity=identity;
 	}
