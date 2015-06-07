@@ -91,7 +91,7 @@ module.exports = function (full_config)
 	    }
 	    if (ok) 
 	    {
-		out.push(msgs[i]);
+		out.unshift(msgs[i]);
 		if (count!=0) { count--; if (count==0) break; }
 	    }
 	}
@@ -105,7 +105,7 @@ module.exports = function (full_config)
 	for (var i=msgs.length-1;i>=0;i--)   // TODO optimize msg search, user authorization for msg
 	{
 	    if ((msgs[i].from==from && msgs[i].to==to) || (msgs[i].to==from && msgs[i].from==to)) 
-	    { 	out.push(msgs[i]); 
+	    { 	out.unshift(msgs[i]); 
 		if (count!=0) { count--; if (count==0) break; }
 	    }
 	}

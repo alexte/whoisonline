@@ -131,8 +131,7 @@
 	{
 	    if (address.length<5) return;
 	    api("start_conversation",{ address: address },function(data) {
-                $("#add_conv").show();
-                $("#add_conv_dialog").hide();
+		toggle_add_conv_dialog();
 	    });
 	}
 
@@ -358,7 +357,7 @@
 		});
 	    $("button.send_button").click(send_message);
 	    $("textarea.chatinput").keypress(function (e) { 
-		if (e.keyCode==13 && !event.shiftKey) { e.preventDefault(); send_message(e); }
+		if (e.keyCode==13 && !e.shiftKey) { e.preventDefault(); send_message(e); }
 	    });
 
 	    $("#list_size_handle").click(function () {
