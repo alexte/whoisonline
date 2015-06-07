@@ -308,7 +308,8 @@ function ca_search_user(req,res)
 	    });
 	    return;
 	}
-	// TODO else send error message to user
+	// TODO check if remote domain is wio enabled
+	r.info="The domain \'"+domain+"\' is not WhoisOnline enabled yet.";
     }
     else  // user searches name ?
     {

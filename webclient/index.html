@@ -104,10 +104,16 @@
 	{
 	    var ul=data.identities;
 	    $("#add_search_result").empty();
+	    $("#add_search_result_info").empty();
 	    if (ul) for (var i=0;i<ul.length;i++)
 	    {
+		if (ul[i].address==me.address) continue;
 		if (ul[i].address) $("#add_search_result").append("<li class=user_list_item>"+generate_list_item(ul[i])+
 			             " <i class=\"add_conv_username fa fa-plus-circle\"></i></li>");
+	    } 
+	    if (data.info)
+	    {
+		$("#add_search_result_info").text(data.info);
 	    }
 	}
 
@@ -386,6 +392,7 @@
 	<br>
 	<input id=searchword> 
 	<i id="do_search" class="fa fa-search"></i>
+	<div id=add_search_result_info></div>
 	<ul id=add_search_result>
 	</ul>
     </div>
