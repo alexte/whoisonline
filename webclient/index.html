@@ -338,8 +338,7 @@
 		toggle_add_conv_dialog();
 	    });
 	    $("#close_search").click(function () {
-		$("#add_conv").show();
-		$("#add_conv_dialog").hide();
+		toggle_add_conv_dialog();
 	    });
 	    $("#searchword").change(delayed_add_dialog_search).keypress(delayed_add_dialog_search);
 	    $("#do_search").click(add_dialog_search);
@@ -373,14 +372,18 @@
 <div id=conv_div>
     <div class=chatwindow id=chatwindow1>
 	<table>
-	<tr><td class=output></td></tr>
-	<tr><td>
-	    <div class=entrybar>
-	        <span class=conv_selector>Input: </span> 
-	        <button class=send_button>Send</button>
-	        <span class=input_span><textarea class=chatinput rows=1></textarea></span>
-	    </div>
-	</td></tr>
+	    <tr><td class=output_td>
+	        <div class=relative_wrapper>
+	            <div class=output></div>
+		</div>
+	    </td></tr>
+	    <tr><td>
+        	<div class=entrybar>
+	    	    <span class=conv_selector>Input: </span> 
+	    	    <button class=send_button>Send</button>
+	    	    <span class=input_span><textarea class=chatinput rows=1></textarea></span>
+    		</div>
+	    </td></tr>
 	</table>
     </div>
 </div>
