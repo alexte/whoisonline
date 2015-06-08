@@ -236,9 +236,9 @@
 
 	    this.dispatch = function(from,to,msg)
 	    {
-		toast(target.address+" - "+from);
 		if (target.address==to) output.append("<b>you: "+msg+"<b><br>");
 		if (target.address==from) output.append(from+": "+msg+"<br>");
+		output.stop().animate({scrollTop: output.height()}, 1000);
 	    }
 
 	    this.set_target = function(identity) 
@@ -249,7 +249,7 @@
 		thisframe[0].identity=identity;
 		output.html(identity.name+" <span class=address>("+identity.address+")</span> <hr>");
 		api("get_messages",{from:me.address,to:identity.address},function (data) {
-		    toast(JSON.stringify(data.msgs));
+		    // toast(JSON.stringify(data.msgs));
 		    handle_msgs(data.msgs);
 		});
 	    }
