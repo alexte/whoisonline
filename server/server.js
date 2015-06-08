@@ -52,6 +52,14 @@ function contains(arr,element)
     return false;
 }
 
+function isEmpty(obj) {
+    var name;
+    for (name in obj) {
+        return false;
+    }
+    return true;
+}
+
 // ------------ read config
 function read_config(next)
 {
@@ -127,23 +135,46 @@ function online_queue_class()
 	return 1;
     }
 
+    function dump()
+    {
+	console.log("oq:");
+	for (var username in queues)
+	{
+	    console.log("  "+username);
+	    for (var id in queues[username].sessions)
+	    {
+	        console.log("     "+id);
+	    }
+	}
+    }
+    this.dump = dump;
+
     this.remove_sessions = function(sessionids)
     {
-	for (var i=0;i<sessionids;i++) 
+	for (var i=0;i<sessionids.length;i++) 
 	    remove_session(sessionids[i]);
     }
 
     function remove_session(sessionid)
     {
+	var ret="close";
 	for (var username in queues) 
 	{
    	    if (queues.hasOwnProperty(username)) 
 	    {
 		if (queues[username].sessions[sessionid])
+		{
 		    delete queues[username].sessions[sessionid];
-		if (queues[username].sessions.length==0) remove_queue(username);
+		    if (isEmpty(queues[username].sessions)) 
+		    {
+			remove_queue(username);
+			return "logout";
+		    }
+		    return "done";
+		}
     	    }
 	}
+	return "not found";
     }
     this.remove_session = remove_session;
 
@@ -218,6 +249,11 @@ function online_queue_class()
 	return queues[username].seq;
     }
 
+    this.get_queue = function(username)
+    {
+	return queues[username];
+    }
+
     function remove_queue(username) { delete queues[username]; }
 
     // TODO garbage collection of msgs per queue acked by all sessions
@@ -227,7 +263,21 @@ function online_queue_class()
 var oq=new online_queue_class();
 
 // ------ msg dispatcher
-function dispatch(from,to,msg)
+function dispatch_status(username,status)
+{
+
+    get_identity_by_address(username,function (identity) {
+    	var o={type:"status",from:identity,status:status};
+    	// get conversation partners that are online
+    	db.get_conversations(username,function (data) {
+    	    // send to status to all of them
+	    for (var i=0;i<data.length;i++)
+	        oq.add_message(data[i].to.address,o);
+    	});
+    });
+}
+
+function dispatch_msg(from,to,msg)
 {
     var o={ type:"msg", from:from, to:to, msg:msg };
     oq.add_message(to,o);
@@ -249,6 +299,7 @@ function ca_login(req,res)
 		session.init_session(req,res);
 		req.session.username=u.username;
 		oq.add_session(u.username,req.session.id);
+		dispatch_status(u.username,"online");
 		res.send({result:200, data:"OK"});
 	    }));
     }
@@ -258,7 +309,8 @@ function ca_login(req,res)
 
 function ca_logout(req,res)
 {
-    oq.remove_session(req.session.id);
+    if (oq.remove_session(req.session.id)=="logout")
+    	dispatch_status(req.session.username,"offline");
     session.remove_session(req.session);
     res.send({result:200, data:"OK"});
 }
@@ -325,6 +377,11 @@ function ca_search_user(req,res)
 function ca_get_conversations(req,res)
 {
     db.get_conversations(req.session.username,function (data) {
+        for (var i=0;i<data.length;i++)
+	{
+	    data[i].status=oq.get_queue(data[i].to.address)?"online":"offline"; 
+	    // TODO check online status of remote users
+	}
     	res.send({result:200, data: data });
     });
 }
@@ -359,7 +416,7 @@ function ca_send_message(req,res)
     if (msg.length==0) { res.send({result:200, data:"ignoring empty message" }); return; }
     if (!valid_address(to)) { res.send({result:400, data:"receipient missing" }); return; }
 
-    dispatch(req.session.username,to,msg);
+    dispatch_msg(req.session.username,to,msg);
     res.send({result:200, data:"sent" });
 }
 
@@ -426,6 +483,7 @@ function run(next)
 function idle_logout()
 {
     oq.remove_sessions(session.remove_old_sessions(config.idletime||60));
+	// TODO send offline status msgs
 }
 
 function background_jobs(next)
