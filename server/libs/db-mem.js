@@ -11,6 +11,15 @@ module.exports = function (full_config)
 
     var messages=[];
 
+    function get_conversation_from_to(from,to)
+    {
+	if (!users[from]) return false;
+	for(var i in users[from].conversations)
+	    if (users[from].conversations.hasOwnProperty(i))
+		if(users[from].conversations[i].to.address==to)
+		    return users[from].conversations[i];
+    }
+
     function for_each_conversation(f)
     {
 	for (var user in users)
@@ -47,9 +56,9 @@ module.exports = function (full_config)
 	else callback([]);
     }
 
-    this.add_conversation=function(from,to,callback)
+    this.add_conversation=function(from,to,state,callback)
     {
-	users[from].conversations.push({to:to});
+	users[from].conversations.push({to:to,state:state});
 	if (callback) callback(true);
     }
 
@@ -122,6 +131,15 @@ module.exports = function (full_config)
 	    }
 	}
 	callback(out);
+    }
+
+    this.set_conversation_state=function(from,to,state,f)
+    {
+        var c=get_conversation_from_to(from,to);
+	if (c) c.state=state;
+        var c=get_conversation_from_to(to,from);
+	if (c) c.state=state;
+	f(true);
     }
 }
 

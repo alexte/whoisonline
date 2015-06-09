@@ -40,7 +40,7 @@
 	    return false;
 	}
 
-	var post_api_cmds=["set_fullname","send_message","start_conversation"];
+	var post_api_cmds=["set_fullname","send_message","set_conversation_state","start_conversation"];
 
 	function api(cmd,data,f)
 	{
@@ -137,13 +137,10 @@
 
 	function show_conversation_list(data)
 	{
-	    var conversations=data.data;
+	    var conversations=data.conversations;
 	    if (!conversations) return;
 	    $("#convlist").empty();
-	    for (var i=0;i<conversations.length;i++)
-	    {
-		add_conversation(conversations[i].to,conversations[i].status);
-	    }
+	    for (var i=0;i<conversations.length;i++) add_conversation(conversations[i]);
 	}
 
 	var seq=1;
@@ -159,21 +156,42 @@
 	    if (error_retry_time<error_retry_time_max) error_retry_time+=500;
 	}
 
+	function set_conv_state(identity,state)
+	{
+	    if (!state) return;
+
+	    var l=$("#convlist li");
+	    if (state=="running") state="";
+	    for(var i=0;i<l.length;i++)
+		if (l[i].conversation.to.address==identity.address) 
+		    $(l[i]).find(".conv_status_text").text(state);
+	}
+
 	function set_conv_status(identity,status)
 	{
 	    var l=$("#convlist li");
 	    for(var i=0;i<l.length;i++)
-		if (l[i].identity.address==identity.address) 
+		if (l[i].conversation.to.address==identity.address) 
 		    $(l[i]).find(".conv_status").attr('class','conv_status conv_'+status);
 	}
 
-	function add_conversation(identity,status)
+	function update_conversation(conv)
 	{
-	    var element=$("<li>"+generate_list_item(identity)+
-			  "<div class=conv_status><div class=conv_status_text>new</div></div></li>");
+	    var identity=conv.to;
+
+	    if (conv.status) set_conv_status(identity,conv.status);
+	    if (conv.state) set_conv_state(identity,conv.state);
+	}
+
+	function add_conversation(conv)
+	{
+	    var identity=conv.to;
+	    var element=$("<li>"+generate_list_item(conv.to)+
+			  "<div class=conv_status><div class=conv_status_text></div></div></li>");
 	    element.appendTo($("#convlist"));
-	    element[0].identity=identity;
-	    if (status) set_conv_status(identity,status);
+	    element[0].conversation=conv;
+	    if (conv.status) set_conv_status(identity,conv.status);
+	    if (conv.state) set_conv_state(identity,conv.state);
 	}
 
 	function handle_msgs(msgs)
@@ -181,7 +199,8 @@
 	    for(var i=0;i<msgs.length;i++)
 	    {
 		var m=msgs[i];
-	    	if (m["type"]=="add_conversation")  add_conversation(m["identity"],m["status"]);
+	    	if (m["type"]=="add_conversation")  add_conversation(m["conversation"]);
+	    	else if (m["type"]=="update_conversation")  update_conversation(m["conversation"]);
 	    	else if (m["type"]=="msg") dispatch(m["from"],m["to"],m["msg"]);
 	    	else if (m["type"]=="status") set_conv_status(m["from"],m["status"]);
 	    	else toast("unknwon msg type: "+m["type"]);
@@ -251,14 +270,16 @@
 		output.stop().animate({scrollTop: output.height()}, 1000);
 	    }
 
-	    this.set_target = function(identity) 
+	    this.set_target = function(conv)
 	    {
-		target=identity; 
-		thisframe.find(".conv_selector").text("> "+identity.name+":");
+		target=conv.to;
+		thisframe.find(".conv_selector").text("> "+conv.to.name+":");
 		thisframe[0].frameid=frameid;
-		thisframe[0].identity=identity;
-		output.html(identity.name+" <span class=address>("+identity.address+")</span> <hr>");
-		api("get_messages",{from:me.address,to:identity.address},function (data) {
+		thisframe[0].identity=conv.to;
+		thisframe[0].conversation=conv;
+		thisframe[0].state=conv.state;
+		output.html(conv.to.name+" <span class=address>("+conv.to.address+")</span> <hr>");
+		api("get_messages",{from:me.address,to:conv.to.address},function (data) {
 		    // toast(JSON.stringify(data.msgs));
 		    handle_msgs(data.msgs);
 		});
@@ -283,11 +304,11 @@
 	    return frames[id];
 	}
 
-	function open_conversation(identity,chatframeid)
+	function open_conversation(conv,chatframeid)
 	{
 	    var frame=get_frame(chatframeid);
 
-	    frame.set_target(identity);
+	    frame.set_target(conv);
 	    frame.focus();
 	}
 
@@ -296,7 +317,7 @@
 	    $("#convlist li").removeClass("active");
 	    var c=$(this);
 	    c.addClass("active");
-	    open_conversation(this.identity,1);
+	    open_conversation(this.conversation,1);
 	}
 
 	function send_message(e) 
@@ -306,11 +327,14 @@
 	    if (!chatwindow[0]) { toast("Bummer! Don't know where this message should go to."); return false; }
 
 	    var identity=chatwindow[0].identity;
+	    if (chatwindow[0].state=="new") 
+	 	api("set_conversation_state",{to:identity.address,state:"running"},function () {
+		    chatwindow[0].state=="running";
+	        });
 	    if (!identity || !identity.address) { toast("Select conversation first!"); return false; }
 
 	    var msg=chatwindow.find(".chatinput").val();
 	    api("send_message",{ to:identity.address, msg:msg },function () { chatwindow.find(".chatinput").val(""); } );
-	    // chatwindow.find(".output").append("would send message \""+msg+"\" to "+identity.address+"<br>"); 
 	}
 
 	function set_fullname(event)

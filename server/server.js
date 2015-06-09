@@ -310,9 +310,12 @@ function ca_login(req,res)
 		if (!u) { res.send({result:401, data:"username or password wrong"}); return; }
 		session.init_session(req,res);
 		req.session.username=u.username;
-		oq.add_session(u.username,req.session.id);
-		dispatch_status(u.username,"online");
-		res.send({result:200, data:"OK"});
+		get_identity_by_address(u.username,function (identity) {
+		   req.session.identity=identity;
+		   oq.add_session(u.username,req.session.id);
+		   dispatch_status(u.username,"online");
+		   res.send({result:200, data:"OK"});
+		});
 	    }));
     }
     else { res.send({result:400, data:"invalid call"}); }
@@ -387,7 +390,7 @@ function ca_get_conversations(req,res)
 	    data[i].status=oq.get_queue(data[i].to.address)?"online":"offline"; 
 	    // TODO check online status of remote users
 	}
-    	res.send({result:200, data: data });
+    	res.send({result:200, conversations: data });
     });
 }
 
@@ -397,10 +400,15 @@ function ca_start_conversation(req,res)
     if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
     get_identity_by_address(address,function (identity) {
-    	db.add_conversation(req.session.username,identity);
+    	db.add_conversation(req.session.username,identity,"asking");
+    	db.add_conversation(identity.address,req.session.identity,"new");
+
     	oq.add_message(req.session.username,{ type: "add_conversation", 
-					      identity: identity, 
-					      status: get_status(address) });
+					      conversation: { to: identity, state: "asking",status: get_status(address) }
+					    });
+    	oq.add_message(address,             { type: "add_conversation", 
+					      conversation: { to: req.session.identity, state: "new",status: get_status(address) }
+					    });
     	res.send({result:200, data:"done" });
     });
 }
@@ -412,6 +420,7 @@ function ca_set_fullname(req,res)
     if (!fullname || fullname.length<1) { res.send({result:400, data:"fullname missing" }); return; }
 
     db.set_fullname(req.session.username,fullname);
+    req.session.identity.name=fullname;
     res.send({result:200, data:"saved" });
 }
 
@@ -425,6 +434,22 @@ function ca_send_message(req,res)
 
     dispatch_msg(req.session.username,to,msg);
     res.send({result:200, data:"sent" });
+}
+
+function ca_set_conversation_state(req,res)
+{
+    var to=req.body.to; // identity
+    var state=req.body.state; // identity
+
+    db.set_conversation_state(req.session.username,to,state,function (data) {
+        res.send({result:200, data:"ok" });
+    });
+    oq.add_message(req.session.username,{ type: "update_conversation", 
+					      conversation: { to: { address: to} , state: state }
+ 				        });
+    oq.add_message(to,                  { type: "update_conversation", 
+					      conversation: { to: req.session.identity, state: state }
+					});
 }
 
 function ca_get_messages(req,res)
@@ -459,6 +484,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="get_conversations") ca_get_conversations(req,res);
     else if (req.params.cmd=="search_user") ca_search_user(req,res); 
     else if (req.params.cmd=="send_message") ca_send_message(req,res); 
+    else if (req.params.cmd=="set_conversation_state") ca_set_conversation_state(req,res); 
     else if (req.params.cmd=="get_messages") ca_get_messages(req,res); 
     else if (req.params.cmd=="set_fullname") ca_set_fullname(req,res); 
     else if (req.params.cmd=="poll") ca_poll(req,res); 
