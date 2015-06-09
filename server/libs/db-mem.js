@@ -11,6 +11,15 @@ module.exports = function (full_config)
 
     var messages=[];
 
+    function for_each_conversation(f)
+    {
+	for (var user in users)
+	    if (users.hasOwnProperty(user))
+	        for (var conv in users[user].conversations)
+	    	    if (users[user].conversations.hasOwnProperty(conv))
+			f(users[user].conversations[conv]);
+    }
+
 	// calls callback with user object if login/password is ok
 	// calls callback with false if login/password is not ok
     this.check_login_password=function(login,password,callback)
@@ -58,6 +67,9 @@ module.exports = function (full_config)
     this.set_fullname=function(address,name)
     {
 	if (users[address]) users[address].name=name;
+	for_each_conversation(function (conv) {
+	    if (conv.to.address==address) { conv.to.name=name; }
+	});
     }
 
     this.get_identity_by_address=function(address,callback)
