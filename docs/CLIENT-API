@@ -145,15 +145,18 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	TODO
 
  - Get stored messages of a conversation
-	GET /clientapi/get_messages?from=address,to=address
+	GET /clientapi/get_messages
 	Input data: { from:address, to:address }
-	Retruns: result, msg: array of messages 
+	Retruns: result, [data: text] [msgs: array of messages]
 
 	Resultcodes:
 		200 OK
+		403 Forbidden
 
 	If there is no such conversation or no message in this conversation
-	the result code is still 200, and the array is empty.
+	the result code is still 200, and the msgs array is empty. If the 
+	requesting client is neither from nor to, the server must answer
+	result:403 with informational data text.
 
  - Logout
 	GET /clientapi/logout

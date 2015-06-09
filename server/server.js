@@ -457,6 +457,12 @@ function ca_get_messages(req,res)
     var from=req.query.from;
     var to=req.query.to;
 
+    if (req.session.username!=from && req.session.username!=to)
+    {
+	res.send({result:403, data:"Forbidden"});
+	return;
+    }
+
     db.get_messages_for_conversation(from,to,0,function(msgs) {
 	res.send({result:200, msgs:msgs});
     });
