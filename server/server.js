@@ -285,6 +285,18 @@ function dispatch_msg(from,to,msg)
     db.save_message(o);
 }
 
+function get_identity_by_address(address,callback)
+{
+    // TODO identity cache
+    if (db.get_identity_by_address) db.get_identity_by_address(address,callback);
+    else callback({ address:address }); // nothing found
+}
+
+function get_status(address)
+{
+    return oq.get_queue(address)?"online":"offline";
+}
+
 // ------ clientapi functions
 function ca_login(req,res)
 {
@@ -318,13 +330,6 @@ function ca_logout(req,res)
 function ca_poll(req,res)
 {
     oq.new_connection(req,res);
-}
-
-function get_identity_by_address(address,callback)
-{
-    // TODO identity cache
-    if (db.get_identity_by_address) db.get_identity_by_address(address,callback);
-    else callback({ address:address }); // nothing found
 }
 
 function ca_start(req,res)
@@ -393,7 +398,9 @@ function ca_start_conversation(req,res)
 
     get_identity_by_address(address,function (identity) {
     	db.add_conversation(req.session.username,identity);
-    	oq.add_message(req.session.username,{ type: "add_conversation", identity: identity });
+    	oq.add_message(req.session.username,{ type: "add_conversation", 
+					      identity: identity, 
+					      status: get_status(address) });
     	res.send({result:200, data:"done" });
     });
 }
