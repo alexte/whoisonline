@@ -6,8 +6,8 @@
 
     <link rel="stylesheet" type="text/css" href="css/global.css">
     <link rel="stylesheet" type="text/css" href="css/conversations.css">
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-    <link href='http://fonts.googleapis.com/css?family=Roboto:400,400italic,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/fa/css/font-awesome.min.css">
+    <link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Roboto:400,400italic,700'>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>
 
@@ -195,7 +195,7 @@
 	{
 	    order_conversation(conv);
 	    var identity=conv.to;
-	    var element=$("<li>"+generate_list_item(conv.to)+
+	    var element=$("<li><i class=\"le_menu fa fa-ellipsis-v\"></i> "+generate_list_item(conv.to)+
 			  "<div class=conv_status><div class=conv_status_text></div></div></li>");
 	    element.appendTo($("#convlist"));
 	    element[0].conversation=conv;

@@ -481,6 +481,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // ------- webclient urls
 app.use('/css', express.static('../webclient/css'));
+app.use('/fa', express.static('node_modules/font-awesome'));
 
 app.all("/clientapi/:cmd",function (req,res) { 
     if (!req.params.cmd) { res.send({ result:404, data: 'missing command'}); return; }

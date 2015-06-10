@@ -49,6 +49,7 @@ div.conv_unknown { background: #A11; }
 div.conv_status_text { margin:0.4em; transform-origin: 0.4em 0.6em; transform: rotate(90deg); }
 
 .le_address { font-style: italic; }
+i.le_menu { float:left; font-size:2.5em; margin-right: 0.3em; }
 
 #add_conv_dialog { display:none; margin:0.2em; padding:0.3em; 
 		   background-color: #B66; border: 2px solid #A11; 
