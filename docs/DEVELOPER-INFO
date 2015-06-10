@@ -1,0 +1,43 @@
+
+Objects used in server.js:
+
+   object req.session: exists for all authenticated users and is filled at login
+	req.session: 
+	{
+	    authenticated: true,
+	    id: sessionid,
+	    username: address,
+	    identity: identity
+	}
+
+    class identity: used for conversations object, req.session.identity etc
+	identity:
+	{
+	    address: address,
+	    OPT name: fullname,
+	    OPT status: user_status
+	}
+
+    class conversation: used for add_conversation, start_conversation, etc
+	conversation:
+	{
+	    a: identity,
+	    b: identity,
+	    status: conversation_status,
+	    last_used: datetime
+	}
+
+    type datetime:
+	Javascript Date() object
+
+    type conversation_status:
+	String: "running","invited"
+
+    type user_status:
+	String: "online","offline","unknown","hidden"
+
+    type fullname:
+	String: UTF8 String
+
+    type address:
+	String: domain@domain.tld in RFC821 format

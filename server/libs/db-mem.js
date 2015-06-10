@@ -7,26 +7,26 @@ module.exports = function (full_config)
 {
     var users={};
     var msgs=[];
+    var conversations=[];
+
     var config=full_config["db-mem"];
 
     var messages=[];
 
-    function get_conversation_from_to(from,to)
+    function get_conversation_a_b(a,b)
     {
-	if (!users[from]) return false;
-	for(var i in users[from].conversations)
-	    if (users[from].conversations.hasOwnProperty(i))
-		if(users[from].conversations[i].to.address==to)
-		    return users[from].conversations[i];
+	for(var i=0;i<conversations.length;i++)
+	{
+	    if(((conversations[i].a.address==a) && (conversations[i].b.address==b)) ||
+	       ((conversations[i].a.address==b) && (conversations[i].b.address==a))) return conversations[i];
+	}
+	return false;
     }
 
     function for_each_conversation(f)
     {
-	for (var user in users)
-	    if (users.hasOwnProperty(user))
-	        for (var conv in users[user].conversations)
-	    	    if (users[user].conversations.hasOwnProperty(conv))
-			f(users[user].conversations[conv]);
+	for(var i=0;i<conversations.length;i++)
+	    f(conversations[conv]);
     }
 
 	// calls callback with user object if login/password is ok
@@ -50,16 +50,21 @@ module.exports = function (full_config)
 	else callback(false);
     }
     
-    this.get_conversations=function(username,callback)
+    this.get_conversations_by_user=function(username,callback)
     {
 	if (users[username]) callback(users[username].conversations);
 	else callback([]);
     }
 
-    this.add_conversation=function(from,to,state,callback)
+    this.add_conversation=function(from,to,status,callback)
     {
-	users[from].conversations.push({to:to,state:state});
-	if (callback) callback(true);
+	var c={a:from,b:to,status:status,last_used:new Date()};
+console.log("new conv "+JSON.stringify(c));
+	conversations.push(c);
+
+	users[from.address].conversations.push(c);
+	users[to.address].conversations.push(c);
+	if (callback) callback(c);
     }
 
     this.search_user=function(sw,callback)
@@ -77,7 +82,8 @@ module.exports = function (full_config)
     {
 	if (users[address]) users[address].name=name;
 	for_each_conversation(function (conv) {
-	    if (conv.to.address==address) { conv.to.name=name; }
+	    if (conv.a.address==address) { conv.a.name=name; }
+	    if (conv.b.address==address) { conv.b.name=name; }
 	});
     }
 
@@ -133,13 +139,11 @@ module.exports = function (full_config)
 	callback(out);
     }
 
-    this.set_conversation_state=function(from,to,state,f)
+    this.set_conversation_status=function(from,to,status,f)
     {
-        var c=get_conversation_from_to(from,to);
-	if (c) c.state=state;
-        var c=get_conversation_from_to(to,from);
-	if (c) c.state=state;
-	f(true);
+        var c=get_conversation_a_b(from,to);
+	if (c) c.status=status;
+	f(c);
     }
 }
 

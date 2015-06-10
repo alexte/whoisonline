@@ -269,10 +269,13 @@ function dispatch_status(username,status)
     get_identity_by_address(username,function (identity) {
     	var o={type:"status",from:identity,status:status};
     	// get conversation partners that are online
-    	db.get_conversations(username,function (data) {
-    	    // send to status to all of them
+    	db.get_conversations_by_user(username,function (data) {
+    	    // send status to all of them
 	    for (var i=0;i<data.length;i++)
-	        oq.add_message(data[i].to.address,o);
+	    {
+	        if (data[i].a.address!=username) oq.add_message(data[i].a.address,o);
+	        if (data[i].b.address!=username) oq.add_message(data[i].b.address,o);
+	    }
     	});
     });
 }
@@ -384,10 +387,11 @@ function ca_search_user(req,res)
 
 function ca_get_conversations(req,res)
 {
-    db.get_conversations(req.session.username,function (data) {
+    db.get_conversations_by_user(req.session.username,function (data) {
         for (var i=0;i<data.length;i++)
 	{
-	    data[i].status=oq.get_queue(data[i].to.address)?"online":"offline"; 
+	    data[i].a.status=get_status(data[i].a.address);
+	    data[i].b.status=get_status(data[i].b.address);
 	    // TODO check online status of remote users
 	}
     	res.send({result:200, conversations: data });
@@ -400,16 +404,14 @@ function ca_start_conversation(req,res)
     if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
     get_identity_by_address(address,function (identity) {
-    	db.add_conversation(req.session.username,identity,"asking");
-    	db.add_conversation(identity.address,req.session.identity,"new");
+    	db.add_conversation(req.session.identity,identity,"inviting",function(c) {
+	    if (!c.a.status) c.a.status=get_status(req.session.identity);
+	    if (!c.b.status) c.b.status=get_status(identity);
 
-    	oq.add_message(req.session.username,{ type: "add_conversation", 
-					      conversation: { to: identity, state: "asking",status: get_status(address) }
-					    });
-    	oq.add_message(address,             { type: "add_conversation", 
-					      conversation: { to: req.session.identity, state: "new",status: get_status(address) }
-					    });
-    	res.send({result:200, data:"done" });
+	    oq.add_message(req.session.username,{ type: "add_conversation", conversation: c });
+	    oq.add_message(address,             { type: "add_conversation", conversation: c });
+	    res.send({result:200, data:"done" });
+	});
     });
 }
 
@@ -436,20 +438,16 @@ function ca_send_message(req,res)
     res.send({result:200, data:"sent" });
 }
 
-function ca_set_conversation_state(req,res)
+function ca_set_conversation_status(req,res)
 {
     var to=req.body.to; // identity
-    var state=req.body.state; // identity
+    var status=req.body.status; // identity
 
-    db.set_conversation_state(req.session.username,to,state,function (data) {
+    db.set_conversation_status(req.session.username,to,status,function (c) {
         res.send({result:200, data:"ok" });
+        oq.add_message(req.session.username,{ type: "update_conversation", conversation: c });
+        oq.add_message(to,                  { type: "update_conversation", conversation: c });
     });
-    oq.add_message(req.session.username,{ type: "update_conversation", 
-					      conversation: { to: { address: to} , state: state }
- 				        });
-    oq.add_message(to,                  { type: "update_conversation", 
-					      conversation: { to: req.session.identity, state: state }
-					});
 }
 
 function ca_get_messages(req,res)
@@ -490,7 +488,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="get_conversations") ca_get_conversations(req,res);
     else if (req.params.cmd=="search_user") ca_search_user(req,res); 
     else if (req.params.cmd=="send_message") ca_send_message(req,res); 
-    else if (req.params.cmd=="set_conversation_state") ca_set_conversation_state(req,res); 
+    else if (req.params.cmd=="set_conversation_status") ca_set_conversation_status(req,res); 
     else if (req.params.cmd=="get_messages") ca_get_messages(req,res); 
     else if (req.params.cmd=="set_fullname") ca_set_fullname(req,res); 
     else if (req.params.cmd=="poll") ca_poll(req,res); 
