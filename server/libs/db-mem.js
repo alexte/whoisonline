@@ -26,7 +26,7 @@ module.exports = function (full_config)
     function for_each_conversation(f)
     {
 	for(var i=0;i<conversations.length;i++)
-	    f(conversations[conv]);
+	    f(conversations[i]);
     }
 
 	// calls callback with user object if login/password is ok

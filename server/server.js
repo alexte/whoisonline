@@ -151,8 +151,13 @@ function online_queue_class()
 
     this.remove_sessions = function(sessionids)
     {
+	var list=[];
 	for (var i=0;i<sessionids.length;i++) 
-	    remove_session(sessionids[i]);
+	{
+	    var r=remove_session(sessionids[i]);
+	    if (r.logout) list.push(r.logout);
+	}
+	return list;
     }
 
     function remove_session(sessionid)
@@ -168,7 +173,7 @@ function online_queue_class()
 		    if (isEmpty(queues[username].sessions)) 
 		    {
 			remove_queue(username);
-			return "logout";
+			return {"logout":username};
 		    }
 		    return "done";
 		}
@@ -405,8 +410,8 @@ function ca_start_conversation(req,res)
 
     get_identity_by_address(address,function (identity) {
     	db.add_conversation(req.session.identity,identity,"inviting",function(c) {
-	    if (!c.a.status) c.a.status=get_status(req.session.identity);
-	    if (!c.b.status) c.b.status=get_status(identity);
+	    if (!c.a.status) c.a.status=get_status(req.session.identity.address);
+	    if (!c.b.status) c.b.status=get_status(identity.address);
 
 	    oq.add_message(req.session.username,{ type: "add_conversation", conversation: c });
 	    oq.add_message(address,             { type: "add_conversation", conversation: c });
@@ -519,8 +524,9 @@ function run(next)
 
 function idle_logout()
 {
-    oq.remove_sessions(session.remove_old_sessions(config.idletime||60));
-	// TODO send offline status msgs
+    var logout_users=oq.remove_sessions(session.remove_old_sessions(config.idletime||60));
+    for (var i=0;i<logout_users.length;i++)
+	dispatch_status(logout_users[i],"offline");
 }
 
 function background_jobs(next)
