@@ -156,14 +156,19 @@
 	    if (error_retry_time<error_retry_time_max) error_retry_time+=500;
 	}
 
-	function set_conv_status(identity,status)
+	function set_conv_status(conv)
 	{
-	    if (!status) return;
+	    if (!conv.status) return;
 
 	    var l=$("#convlist li");
-	    if (status=="running") status="";
+	    var stats="bloob";
+	    if (conv.status=="running") status="";
+	    else if (conv.status=="inviting" && conv.to==conv.a) status="new";
+	    else if (conv.status=="inviting" && conv.to==conv.b) status="asking";
+	    else status=conv.status;
+
 	    for(var i=0;i<l.length;i++)
-		if (l[i].conversation.to.address==identity.address) 
+		if (l[i].conversation.to.address==conv.to.address) 
 		    $(l[i]).find(".conv_status_text").text(status);
 	}
 
@@ -188,19 +193,19 @@
 	    var identity=conv.to;
 
 	    if (conv.to.status) set_conv_user_status(identity,conv.to.status);
-	    if (conv.status) set_conv_status(identity,conv.status);
+	    set_conv_status(conv);
 	}
 
 	function add_conversation_element(conv)
 	{
 	    order_conversation(conv);
 	    var identity=conv.to;
-	    var element=$("<li><i class=\"le_menu fa fa-ellipsis-v\"></i> "+generate_list_item(conv.to)+
+	    var element=$("<li><i class=\"le_dots fa fa-ellipsis-v\"></i> "+generate_list_item(conv.to)+
 			  "<div class=conv_status><div class=conv_status_text></div></div></li>");
 	    element.appendTo($("#convlist"));
 	    element[0].conversation=conv;
 	    if (conv.to.status) set_conv_user_status(identity,conv.to.status);
-	    if (conv.status) set_conv_status(identity,conv.status);
+	    set_conv_status(conv);
 	}
 
 	function handle_msgs(msgs)
@@ -336,7 +341,8 @@
 	    if (!chatwindow[0]) { toast("Bummer! Don't know where this message should go to."); return false; }
 
 	    var identity=chatwindow[0].identity;
-	    if (chatwindow[0].status=="inviting") 
+	    if (chatwindow[0].status=="inviting" && chatwindow[0].conversation.b.address==me.address)  
+			// I was invited, message accepts conversation
 	 	api("set_conversation_status",{to:identity.address,status:"running"},function () {
 		    chatwindow[0].status=="running";
 	        });
@@ -353,6 +359,34 @@
 	}
 
 	var me=false;
+
+	function toggle_le_menu(event)
+	{
+	    var le=$(this).parents("li").first();
+	    var menu=$("#le_menu");
+
+	    if (!le || le.length!=1) { toast("le_menu failed"); return; }
+	    if (menu.is(":visible")) 
+	    {
+		menu.fadeOut(400);
+		return;
+	    }
+
+	    menu.appendTo(le);
+	    menu.show();
+	}
+
+	function end_conversation(e)
+	{
+	    var le=$(this).parents("li").first();
+	
+	    if (!le || le.length!=1) { toast("le_menu failed"); return; }
+
+	    toast("Would close conversation");
+	    var menu=$("#le_menu");
+	    menu.hide();
+	    menu.appendTo($("#convlist_div"));
+	}
 
 	function toggle_add_conv_dialog()
 	{
@@ -389,6 +423,9 @@
                 start_conversation($(event.target).parent().find("span.le_address").text());
             });
 	    $('#convlist').on('click','li', select_conversation);
+	    $('#convlist').on('click','.le_dots', toggle_le_menu);
+
+	    $('#end_conv').on('click', end_conversation);
 
 		// dynamically resize textarea
 	    $('textarea.chatinput').each(function () {
@@ -444,6 +481,7 @@
     <ul id=convlist>
 	<li>Loading...<i class="fa fa-circle-o-notch fa-spin"></i></li>
     </ul>
+    <div id=le_menu> <button id=end_conv class=menubutton>End &amp; clear conversation</button> </div>
 </div>
 <div id=header>
     <div id=action_icons>
