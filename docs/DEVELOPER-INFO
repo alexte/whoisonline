@@ -31,7 +31,7 @@ Objects used in server.js:
 	Javascript Date() object
 
     type conversation_status:
-	String: "running","invited"
+	String: "running","invited","disconnected"
 
     type user_status:
 	String: "online","offline","unknown","hidden"

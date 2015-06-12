@@ -40,7 +40,7 @@
 	    return false;
 	}
 
-	var post_api_cmds=["set_fullname","send_message","set_conversation_status","start_conversation"];
+	var post_api_cmds=["set_fullname","send_message","leave_conversation","set_conversation_status","start_conversation"];
 
 	function api(cmd,data,f)
 	{
@@ -163,6 +163,7 @@
 	    var l=$("#convlist li");
 	    var stats="bloob";
 	    if (conv.status=="running") status="";
+	    else if (conv.status=="disconnected") status="left";
 	    else if (conv.status=="inviting" && conv.to==conv.a) status="new";
 	    else if (conv.status=="inviting" && conv.to==conv.b) status="asking";
 	    else status=conv.status;
@@ -184,6 +185,16 @@
 	{
 	    if (me.address==c.a.address) c.to=c.b;
 	    if (me.address==c.b.address) c.to=c.a;
+	}
+
+	function remove_conversation(conv)
+	{
+	    if (!conv) { toast("broken remove_conversation msg"); return; }
+	    order_conversation(conv);
+	    var l=$("#convlist li");
+	    for(var i=0;i<l.length;i++)
+		if (l[i].conversation.to.address==conv.to.address) l[i].remove();
+	    for(var i=0;i<frames.length;i++) if (frames[i] && frames[i].get_address()==conv.to.address) frames[i].set_target("none");
 	}
 
 	function update_conversation(conv)
@@ -215,6 +226,7 @@
 		var m=msgs[i];
 	    	if (m["type"]=="add_conversation")  add_conversation_element(m["conversation"]);
 	    	else if (m["type"]=="update_conversation")  update_conversation(m["conversation"]);
+	    	else if (m["type"]=="remove_conversation")  remove_conversation(m["conversation"]);
 	    	else if (m["type"]=="msg") dispatch(m["from"],m["to"],m["msg"]);
 	    	else if (m["type"]=="status") set_conv_user_status(m["from"],m["status"]);
 	    	else toast("unknwon msg type: "+m["type"]);
@@ -284,8 +296,17 @@
 		output.stop().animate({scrollTop: output.height()}, 1000);
 	    }
 
+	    this.get_address = function() { return target.address; } 
+
 	    this.set_target = function(conv)
 	    {
+		if (conv=="none") 
+		{
+		    target=false; delete thisframe[0].identity; return; 
+		    thisframe.find(".conv_selector").text("Input: ");
+		    output.html("<hr>");
+		    return;
+		}
 		target=conv.to;
 		thisframe.find(".conv_selector").text("> "+conv.to.name+":");
 		thisframe[0].frameid=frameid;
@@ -379,13 +400,16 @@
 	function end_conversation(e)
 	{
 	    var le=$(this).parents("li").first();
+	    var address=le[0].conversation.to.address;
 	
+	    if (!address) { toast("end_conversation failed"); return; }
 	    if (!le || le.length!=1) { toast("le_menu failed"); return; }
 
-	    toast("Would close conversation");
-	    var menu=$("#le_menu");
-	    menu.hide();
-	    menu.appendTo($("#convlist_div"));
+	    api("leave_conversation",{address:address},function () {
+	        var menu=$("#le_menu");
+	        menu.hide();
+	        menu.appendTo($("#convlist_div"));
+	    });
 	}
 
 	function toggle_add_conv_dialog()
@@ -481,7 +505,7 @@
     <ul id=convlist>
 	<li>Loading...<i class="fa fa-circle-o-notch fa-spin"></i></li>
     </ul>
-    <div id=le_menu> <button id=end_conv class=menubutton>End &amp; clear conversation</button> </div>
+    <div id=le_menu> <button id=end_conv class=menubutton>leave conversation</button> </div>
 </div>
 <div id=header>
     <div id=action_icons>

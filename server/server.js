@@ -420,6 +420,20 @@ function ca_start_conversation(req,res)
     });
 }
 
+function ca_leave_conversation(req,res)
+{
+    var address=req.body.address;
+    if (!address) { res.send({result:400, data:"invalid call"}); return; } 
+
+    db.leave_conversation(req.session.username,address,function (data) {
+        db.set_conversation_status(req.session.username,address,"disconnected",function (c) {
+            res.send({result:200, data:"ok" });
+            oq.add_message(req.session.username,{ type: "remove_conversation", conversation: c });
+            oq.add_message(address, { type: "update_conversation", conversation: c });
+        });
+    });
+}
+
 function ca_set_fullname(req,res)
 {
     var fullname=req.body.fullname;
@@ -491,6 +505,7 @@ app.all("/clientapi/:cmd",function (req,res) {
 
     if (req.params.cmd=="start") ca_start(req,res); 
     else if (req.params.cmd=="start_conversation") ca_start_conversation(req,res); 
+    else if (req.params.cmd=="leave_conversation") ca_leave_conversation(req,res); 
     else if (req.params.cmd=="get_conversations") ca_get_conversations(req,res);
     else if (req.params.cmd=="search_user") ca_search_user(req,res); 
     else if (req.params.cmd=="send_message") ca_send_message(req,res); 

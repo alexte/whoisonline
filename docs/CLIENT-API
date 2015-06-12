@@ -134,11 +134,6 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	"User gui prefs" is an object which was sent by the client before, the server
 	should return it unchanged.
 
- - Start conversation:
-	POST /clientapi/start_conversation
-
-	TODO
-
  - Search for users:
 	GET /clientapi/search_user
 	Input data: { search: searchword }
@@ -199,9 +194,27 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	Resultcodes:
 		200 OK
 
- TODO: 
- - 
-	GET /clientapi/set_conversation_status
+ - Leave conversation
+	POST /clientapi/leave_conversation
+	Input Data: { address: address }
+	Return: result, data
+
+	Resultcodes: 
+		200 OK
+
+	The server must remove the conversation from the convrsation list of the calling user.
+	The conversation may still be visible to the other user(s). But the status of this
+	conversation may change for the other user to "left". 
+	
+ -  Set conversation status
+	POST /clientapi/set_conversation_status
+	Input Data: { to: address, status: text }
+	Return: result, data
+
+	Resultcode:
+		200 OK
+
+	The status should be pushed to the other users of the conversation.
 
 JSON object structures 
 ----------------------

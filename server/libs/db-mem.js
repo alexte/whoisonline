@@ -67,6 +67,22 @@ console.log("new conv "+JSON.stringify(c));
 	if (callback) callback(c);
     }
 
+    this.leave_conversation=function(from,to,callback)
+    {
+	if (!users[from]) callback(false);
+	for (var i=0;i<users[from].conversations.length;i++)
+	{
+	    if (users[from].conversations[i].a.address==to ||
+		users[from].conversations[i].b.address==to)
+	    {
+		users[from].conversations.splice(i,1);
+		callback(true);
+		return;
+	    }
+	}
+	callback(false);
+    }
+
     this.search_user=function(sw,callback)
     {
 	var username;
@@ -141,6 +157,7 @@ console.log("new conv "+JSON.stringify(c));
 
     this.set_conversation_status=function(from,to,status,f)
     {
+console.log("set_conv_status "+status);
         var c=get_conversation_a_b(from,to);
 	if (c) c.status=status;
 	f(c);
