@@ -34,14 +34,14 @@ PreAuth Phase
  - Login:
 	POST /clientapi/login 
 	Data: username, password
-	Returns: result, msg
+	Returns: result, data
 
 	The username must be in the format "username@domain" like in the email standards
 	[RFC821,RFC822,RFC5321,RFC5322] or "username" without domain. 
-	if the User ommits the domain part the server may still try to authenticate the
+	If the user ommits the domain part the server may still try to authenticate the
 	user based on the server's local domain name(s).
 
-	Msg must be a string explaining the resultcode. The client may show this msg, especially
+	Data must be a string explaining the resultcode. The client may show this msg, especially
 	if it has no translation for the result code.
 
 	Resultcodes: 
@@ -104,11 +104,11 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	    404 User not found
 
 	If a user hides her profile, the server may return ether 403 or 404.
-	If <identityaddress> is "me", the profile of the requesting user is returned
+	If <identityaddress> is "me", the profile of the requesting user must be returned
 	
  - Get get_conversations:
 	GET /clientapi/get_conversations[?skipto=<n>]
-	Return: result, data : list of conversations (JSON)
+	Return: result, conversations : list of conversations (JSON)
 
 	Resultcodes:
 	    200 OK
@@ -141,13 +141,47 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 
  - Search for users:
 	GET /clientapi/search_user
+	Input data: { search: searchword }
+	Return: result, identities: Array of identity
+		OPT info
 
-	TODO
+	The server must return a reasonable list of identities matching the searchword.
+	This list may be emtpy if there are no matches.
+	The server may send in info string to inform about his searchword. 
+	e.g.  searchword: "bob@facebook.com"  -  info: "The domain 'facebook.com' does not provide whoisonline services"
 
+ - Start conversation
+	POST /clientapi/start_conversation
+	Input data: { address: address }
+	Returns: result, data: text
+
+	Resultcodes:
+		200 OK
+		403 Forbidden
+		404 Not found
+
+	Starts a conversation with "address". The Server may answer "forbidden", or "not found" if
+	it knows already. This conversation may be in "inviting" state at the beginning, and the recipient
+	should be informed about the chat request, or automatically accept it.
+
+ - Set fullname for user
+	POST /clientapi/set_fullname
+	Input data: { fullname: fullname }
+	Returns: result, data: text
+
+	Resultcodes:
+		200 OK
+		400 Syntax error
+		403 Forbidden
+
+	With this API call the user can set its fullname for the profile.
+	Some names may be forbidden or include invaild characters, in this
+	cases the server must answer 403 or 400.
+	
  - Get stored messages of a conversation
 	GET /clientapi/get_messages
 	Input data: { from:address, to:address }
-	Retruns: result, [data: text] [msgs: array of messages]
+	Returns: result, [data: text] [msgs: array of messages]
 
 	Resultcodes:
 		200 OK
@@ -160,10 +194,14 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 
  - Logout
 	GET /clientapi/logout
-	Return: result, msg
+	Return: result, data
 	
 	Resultcodes:
 		200 OK
+
+ TODO: 
+ - 
+	GET /clientapi/set_conversation_status
 
 JSON object structures 
 ----------------------
