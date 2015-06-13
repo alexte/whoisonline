@@ -3,13 +3,47 @@
  *
  */
 
+fs=require('fs');
+
 module.exports = function (full_config)
 {
     var users={};
     var msgs=[];
     var conversations=[];
 
+    var changed=false;
+
     var config=full_config["db-mem"];
+
+    function save_data()
+    {
+	if (!changed) return;
+	var all={ users:users, conversations:conversations, msgs:msgs, timestat:new Date() };
+
+	fs.writeFile(config.db_file,JSON.stringify(all),function (err) { 
+	    if (err) console.log("writing wio database failed");
+	});
+    }
+
+    function load_data()
+    {
+	try { 
+	    var all=JSON.parse(fs.readFileSync(config.db_file));
+
+	// TODO conversatoins need to be linked to users and not copied
+	    msgs=all.msgs;
+	    users=all.users;
+	    conversations=all.conversations;
+	} catch (e) {
+	    console.log("cannot read db-mem file "+config.db_file);
+	}
+    }
+
+    if (config.db_file)
+    {
+	load_data();
+	setInterval(save_data,3000);
+    }
 
     function dump_data()
     {
@@ -49,6 +83,7 @@ module.exports = function (full_config)
 	if (config.auth_method=='dummy' && login.length>=3 && login==password) 
 	{
 	    if (!users[username]) users[username]={ conversations:[] };
+	    changed=true;
 	    callback({ username:username });
 	}
 	else callback(false);
@@ -63,6 +98,7 @@ dump_data();
 
     this.add_conversation=function(from,to,status,callback)
     {
+	changed=true;
 	var c=get_conversation_a_b(from.address,to.address);
 	if (c)
 	{
@@ -90,6 +126,7 @@ dump_data();
 
     this.leave_conversation=function(from,to,callback)
     {
+	changed=true;
 	if (!users[from]) callback(false);
 	for (var i=0;i<users[from].conversations.length;i++)
 	{
@@ -117,6 +154,7 @@ dump_data();
 
     this.set_fullname=function(address,name)
     {
+	changed=true;
 	if (users[address]) users[address].name=name;
 	for_each_conversation(function (conv) {
 	    if (conv.a.address==address) { conv.a.name=name; }
@@ -132,7 +170,8 @@ dump_data();
 
     this.save_message=function(message,callback)
     {
-	message.timestamp=Date.now();
+	changed=true;
+	message.timestamp=new Date();
 	msgs.push(message);
 	if (callback) callback(true);
     }
@@ -178,6 +217,7 @@ dump_data();
 
     this.set_conversation_status=function(from,to,status,f)
     {
+	changed=true;
 console.log("set_conv_status "+status);
         var c=get_conversation_a_b(from,to);
 	if (c) c.status=status;
