@@ -11,7 +11,11 @@ module.exports = function (full_config)
 
     var config=full_config["db-mem"];
 
-    var messages=[];
+    function dump_data()
+    {
+	console.log("USERS: "+JSON.stringify(users,null,2));
+	console.log("CONVERSATIONS: "+JSON.stringify(conversations,null,2));
+    }
 
     function get_conversation_a_b(a,b)
     {
@@ -52,16 +56,33 @@ module.exports = function (full_config)
     
     this.get_conversations_by_user=function(username,callback)
     {
+dump_data();
 	if (users[username]) callback(users[username].conversations);
 	else callback([]);
     }
 
     this.add_conversation=function(from,to,status,callback)
     {
-	var c={a:from,b:to,status:status,last_used:new Date()};
-console.log("new conv "+JSON.stringify(c));
-	conversations.push(c);
+	var c=get_conversation_a_b(from.address,to.address);
+	if (c)
+	{
+	    console.log("old conv "+JSON.stringify(c));
+	    if (users[from.address].conversations.indexOf(c)<0) users[from.address].conversations.push(c);
+	    if (users[to.address].conversations.indexOf(c)<0) users[to.address].conversations.push(c);
+	    if (from.address!=c.a.address)
+	    {
+		var mem=c.a;
+		c.a=c.b;
+		c.b=mem;
+	    }
+	    c.status="inviting";
+	    if (callback) callback(c);
+	    return;
+	}
 
+	var c={a:from,b:to,status:status,last_used:new Date()};
+	console.log("new conv "+JSON.stringify(c));
+	conversations.push(c);
 	users[from.address].conversations.push(c);
 	users[to.address].conversations.push(c);
 	if (callback) callback(c);
@@ -111,7 +132,7 @@ console.log("new conv "+JSON.stringify(c));
 
     this.save_message=function(message,callback)
     {
-	messages.timestamp=Date.now();
+	message.timestamp=Date.now();
 	msgs.push(message);
 	if (callback) callback(true);
     }

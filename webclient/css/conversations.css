@@ -50,7 +50,7 @@ div.conv_status_text { margin:0.4em; transform-origin: 0.4em 0.6em; transform: r
 
 .le_address { font-style: italic; }
 i.le_dots { float:left; font-size:2.5em; margin-right: 0.3em; }
-div#le_menu { position:absolute; padding: 0.3em; display:none;
+div#le_menu { position:absolute; padding: 0.3em; display:none; z-index:10; 
 	      text-align:center; border: none; background-color: #A11; color:#FFF; box-shadow: 0px 0px 10px 2px #000; }
 
 #add_conv_dialog { display:none; margin:0.2em; padding:0.3em; 

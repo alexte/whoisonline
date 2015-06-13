@@ -211,12 +211,16 @@
 	{
 	    order_conversation(conv);
 	    var identity=conv.to;
+	 
+ 	    le=$("#convlist li");
+	    for (var i=0;i<le.length;i++) if (le[i].conversation.to.address==conv.to.address) return false;
 	    var element=$("<li><i class=\"le_dots fa fa-ellipsis-v\"></i> "+generate_list_item(conv.to)+
 			  "<div class=conv_status><div class=conv_status_text></div></div></li>");
 	    element.appendTo($("#convlist"));
 	    element[0].conversation=conv;
 	    if (conv.to.status) set_conv_user_status(identity,conv.to.status);
 	    set_conv_status(conv);
+	    return true;
 	}
 
 	function handle_msgs(msgs)
