@@ -30,10 +30,23 @@ module.exports = function (full_config)
 	try { 
 	    var all=JSON.parse(fs.readFileSync(config.db_file));
 
-	// TODO conversatoins need to be linked to users and not copied
 	    msgs=all.msgs;
-	    users=all.users;
 	    conversations=all.conversations;
+	    users=all.users;
+		// conversatoins need to be linked to users and not copied
+	    for (var user in users)
+	    {
+		if (users.hasOwnProperty(user))
+		{
+		    var readconvs=users[user].conversations;
+		    users[user].conversations=[];
+		    for(var i=0;i<readconvs.length;i++)
+		    {
+			var c=get_conversation_a_b(readconvs[i].a.address,readconvs[i].b.address);
+			if (c) users[user].conversations.push(c);
+	 	    }
+		}
+	    }
 	} catch (e) {
 	    console.log("cannot read db-mem file "+config.db_file);
 	}
