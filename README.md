@@ -7,7 +7,7 @@ chat and instant messaging system.  Easy as WhatsApp and
 distributed as IRC and XMPP.
 
 This project is in early development state. The current
-version is v0.3. The following features are working (or should
+version is v0.4. The following features are working (or should
 be working, and need testing):
 
  - Node Chat Server
@@ -18,6 +18,7 @@ be working, and need testing):
  - Msg queueing for offline users
  - Multi session support 
  - Managing and showing online status
+ - Minimal DB lib with saved state
 
 Roadmap of coming features:
 
