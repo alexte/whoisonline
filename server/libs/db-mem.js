@@ -11,6 +11,8 @@ module.exports = function (full_config)
     var msgs=[];
     var conversations=[];
 
+    var groups={};
+
     var changed=false;
 
     var config=full_config["db-mem"];
@@ -18,7 +20,7 @@ module.exports = function (full_config)
     function save_data()
     {
 	if (!changed) return;
-	var all={ users:users, conversations:conversations, msgs:msgs, timestat:new Date() };
+	var all={ users:users, conversations:conversations, msgs:msgs, groups:groups, timestat:new Date() };
 
 	fs.writeFile(config.db_file,JSON.stringify(all),function (err) { 
 	    if (err) console.log("writing wio database failed");
@@ -32,6 +34,7 @@ module.exports = function (full_config)
 
 	    msgs=all.msgs;
 	    conversations=all.conversations;
+	    groups=all.groups;
 	    users=all.users;
 		// conversatoins need to be linked to users and not copied
 	    for (var user in users)
@@ -235,6 +238,70 @@ console.log("set_conv_status "+status);
         var c=get_conversation_a_b(from,to);
 	if (c) c.status=status;
 	f(c);
+    }
+
+	// ----------------------- groups handling
+
+    this.add_group=function(identity,callback)
+    {
+	if (!identity.address)  { if (callback) callback(false); }
+	else
+	{
+	    if (!identity.address in groups) groups[identity.address]={ identity: identity, members:[] };
+	    if (callback) callback(groups[identity.address]);
+	}
+    }
+
+    this.set_group_info=function(group,info,callback) // address,info object
+    {
+	if (group in groups) { groups[group].info=info; if (callback) callback(groups[group]); }
+	else { if (callback) callback(false); }
+    }
+
+    this.remove_group=function(group,callback)
+    {
+	if (group in groups) { delete groups[group]; if (callback) callback(true); }
+	else { if (callback) callback(false); }
+    }
+
+    this.add_group_member=function(group,identity,callback)
+    {
+	if (group in groups) { groups[group].members.push({identity:identity}); if (callback) callback(groups[groups]); }
+	else { if (callback) callback(false); }
+    }
+
+    this.remove_group_member=function(group,address,callback)
+    {
+	if (!group in groups) { if (callback) callback(false); return; }
+
+	var m=groups[group].members;
+	for (var i=0;i<m.length;i++)
+	{
+	    if (m[i].identity.address==address)
+	    {
+		m.splice(i,1);
+		if (callback) callback(groups[group].members);
+		return;
+	    }
+	}
+	if (callback) callback(false);
+    }
+
+    this.set_group_member_info=function(group,address,info)
+    {
+	if (!group in groups) { if (callback) callback(false); return; }
+
+	var m=groups[group].members;
+	for (var i=0;i<m.length;i++)
+	{
+	    if (m[i].identity.address==address)
+	    {
+		m[i].info=info;
+		if (callback) callback(m[i]);
+		return;
+	    }
+	}
+	if (callback) callback(false);
     }
 }
 
