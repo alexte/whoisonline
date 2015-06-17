@@ -437,6 +437,12 @@
 		$(".now").text(last_poll.toLocaleTimeString());
 		api("get_conversations",false,show_conversation_list);
 	    });
+	    $("input").on("focus",function(e) {
+		$("label[for="+this.id+"]").hide();
+	    });
+	    $("input").on("blur",function(e) {
+		if (this.value.length<1) $("label[for="+this.id+"]").show();
+	    });
 	    $("#omenu").hide();
 	    $(".option-menu").click(function () { $("#omenu").toggle(); });
 	    $("#add_conv").click(function () {
@@ -495,17 +501,26 @@
 	</table>
     </div>
 </div>
+<div id=add_conv_dialog>
+    <i id="close_search" class="fa fa-times"></i>
+
+    <h3>Search for users or groups:</h3>
+
+    <label for=searchword>search..</label> <input id=searchword> 
+    <i id="do_search" class="fa fa-search"></i>
+
+    <div id=add_search_result_info></div>
+
+    <ul id=add_search_result>
+    </ul>
+
+    <h3>Add a new group:</h3>
+    <label for=groupname>group address</label> <input id=groupname> 
+
+    <i id="add_group" class="fa fa-plus-circle"></i>
+
+</div>
 <div id=convlist_div>
-    <div id=add_conv_dialog>
-	Search for user address:
-	<i id="close_search" class="fa fa-times"></i>
-	<br>
-	<input id=searchword> 
-	<i id="do_search" class="fa fa-search"></i>
-	<div id=add_search_result_info></div>
-	<ul id=add_search_result>
-	</ul>
-    </div>
     <ul id=convlist>
 	<li>Loading...<i class="fa fa-circle-o-notch fa-spin"></i></li>
     </ul>
@@ -527,7 +542,7 @@
 <div id=toast></div>
 <div class=dialog id=fullnamedialog>
    <p>What's your full name or nick ?</p>
-   <p><input></p>
+   <p><label for=fn_input>John</label><input id=fn_input></p>
    <button>OK</button>
 </div>
 </body>
