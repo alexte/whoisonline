@@ -59,13 +59,13 @@ div#le_menu { position:absolute; padding: 0.3em; display:none; z-index:5;
 
 #add_conv_dialog { display:none; position:fixed; top:3.5em; left:3em; min-width:40em; min-height:8em; z-index:10;
 		   padding:1em; margin:0.5em; 
-		   background-color: #A11; color:#FFF; box-shadow: 0px 0px 10px 2px #000; 
+		   background-color: #A11; color:#FFF; border: 3px solid white; box-shadow: 0px 0px 10px 2px #000; 
 		 }
 #add_conv_dialog h3 { margin-top: 0.5em; }
 #add_conv_dialog i { font-size:1.3em; margin:0.2em; }
 
+#add_conv_dialog i.join_conv_button { float:left; margin:0.3em; font-size:1.6em; }
 #add_search_result { list-style-type: none; padding-left: 0.3em; } 
-
 
 i#close_search { position:absolute; top:0.5em; right:0.5em; }
 
