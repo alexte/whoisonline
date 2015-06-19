@@ -310,7 +310,7 @@
 	    {
 		if (conv=="none") 
 		{
-		    target=false; delete thisframe[0].identity; return; 
+		    target=false; delete thisframe[0].identity;
 		    thisframe.find(".conv_selector").text("Input: ");
 		    output.html("<hr>");
 		    return;
@@ -426,6 +426,31 @@
             $("#add_conv_dialog").toggle();
 	}
 
+	var new_group_address_autofill=true;
+	var group_suffix="";
+
+	function validate_new_group(e)
+	{
+	    var a=$("#new_groupaddress").val();
+	    var n=$("#new_groupname").val();
+
+	    if (a=="") new_group_address_autofill=true;
+	    if (this.id=="new_groupaddress") { toast("STOP"); new_group_address_autofill=false; }
+
+	    if (this.id=="new_groupname" && new_group_address_autofill)
+	    {
+		if (n.length>0)
+		{
+		    $("#new_groupaddress").val(n+""+group_suffix);
+		    $("label.overlay[for=new_groupaddress]").hide();
+		} else
+		{
+		    $("#new_groupaddress").val("");
+		    $("label.overlay[for=new_groupaddress]").show();
+		}
+	    }
+	}
+
 	$(document).ready(function(){
 	    api("start",false,function (data) {
 		$(".username").text(data.identity.address);
@@ -438,14 +463,15 @@
 		}
 		if(data.now) last_poll=new Date(data.now);
 		if(data.seq) seq=data.seq;
+		if(data.group_suffix) group_suffix=data.group_suffix;
 		$(".now").text(last_poll.toLocaleTimeString());
 		api("get_conversations",false,show_conversation_list);
 	    });
 	    $("input").on("focus",function(e) {
-		$("label[for="+this.id+"]").hide();
+		if (this.id) $("label.overlay[for="+this.id+"]").hide();
 	    });
 	    $("input").on("blur",function(e) {
-		if (this.value.length<1) $("label[for="+this.id+"]").show();
+		if (this.value.length<1) $("label.overlay[for="+this.id+"]").show();
 	    });
 	    $("#omenu").hide();
 	    $(".option-menu").click(function () { $("#omenu").toggle(); });
@@ -483,6 +509,11 @@
 		if (layout_list_minimized) maximize_list(); else minimize_list();
 	    });
 	    $("#fullnamedialog button").click(set_fullname);
+
+	    $("#new_group").hide();
+	    $("#new_groupname, #new_groupaddress").keyup(validate_new_group);
+	    $("#toggle_new_group").click(function () { $("#new_group").toggle(); });
+
 	    add_omenu_entry("Logout",logout);
 	    setTimeout(poll,100);
 	});
@@ -512,7 +543,7 @@
 
     <h3>Search for users or groups:</h3>
 
-    <label for=searchword>search..</label> <input id=searchword> 
+    <label class=overlay for=searchword>search..</label> <input id=searchword> 
     <i id="do_search" class="fa fa-search"></i>
 
     <div id=add_search_result_info></div>
@@ -520,11 +551,13 @@
     <ul id=add_search_result>
     </ul>
 
-    <h3>Add a new group:</h3>
-    <label for=groupname>group address</label> <input id=groupname> 
-
-    <i id="add_group" class="fa fa-plus-circle"></i>
-
+    <h3>Add a new group <i id="toggle_new_group" class="fa fa-plus-circle"></i></h3>
+    <div id="new_group">
+	<label class=overlay for=new_groupname>group name</label> <input id=new_groupname> <br>
+	<label class=overlay for=new_groupaddress>group address</label> <input id=new_groupaddress> <p>
+	<label><input type=radio checked name=new_groupmode value=public> public </label>
+	<label><input type=radio name=new_groupmode value=private> private </label>
+    </div>
 </div>
 <div id=convlist_div>
     <ul id=convlist>
@@ -548,7 +581,7 @@
 <div id=toast></div>
 <div class=dialog id=fullnamedialog>
    <p>What's your full name or nick ?</p>
-   <p><label for=fn_input>John</label><input id=fn_input></p>
+   <p><label class=overlay for=fn_input>John</label><input id=fn_input></p>
    <button>OK</button>
 </div>
 </body>

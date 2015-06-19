@@ -352,6 +352,7 @@ function ca_start(req,res)
 
     get_identity_by_address(req.session.username,function (identity) {
         r.identity=identity;
+        r.group_suffix=config.group_suffix;
         res.send(r);
     });
 }

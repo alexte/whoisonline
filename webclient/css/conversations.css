@@ -1,6 +1,6 @@
 
 body, html { height: 100%; margin:0; padding:0; }
-label { position:absolute; font-size:1.1em; font-style:italic; padding:0.3em; }
+label.overlay { position:absolute; font-size:1.1em; font-style:italic; padding:0.3em; }
 input { background-color:transparent; border:none; color:inherit; font-size:1.1em; border-bottom: 2px solid #FFF; padding:0.4em; outline:none; }
 
 /* ----------------------------------- Header */
