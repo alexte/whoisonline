@@ -163,7 +163,7 @@ dump_data();
    	var r=[];
 	for (username in users)
 	    if (username.toLowerCase().indexOf(sw.toLowerCase())>=0 || 
-		users[username].name.toLowerCase().indexOf(sw.toLowerCase())>=0) 
+		(users[username].name && users[username].name.toLowerCase().indexOf(sw.toLowerCase())>=0))
 		r.push({ address: username, name:users[username].name});
 	callback(r);
     }
