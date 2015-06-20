@@ -513,6 +513,8 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="set_conversation_status") ca_set_conversation_status(req,res); 
     else if (req.params.cmd=="get_messages") ca_get_messages(req,res); 
     else if (req.params.cmd=="set_fullname") ca_set_fullname(req,res); 
+    else if (req.params.cmd=="new_group_check") ca_new_group_check(req,res); 
+    else if (req.params.cmd=="new_group") ca_new_group(req,res); 
     else if (req.params.cmd=="poll") ca_poll(req,res); 
     else res.send({ result:404, data: 'unknown command'}); 
 });

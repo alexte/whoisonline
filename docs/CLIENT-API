@@ -206,7 +206,7 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 	The conversation may still be visible to the other user(s). But the status of this
 	conversation may change for the other user to "left". 
 	
- -  Set conversation status
+ - Set conversation status
 	POST /clientapi/set_conversation_status
 	Input Data: { to: address, status: text }
 	Return: result, data
@@ -215,6 +215,21 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 		200 OK
 
 	The status should be pushed to the other users of the conversation.
+ 
+ - New Group Check
+	GET /clientapi/new_group_check
+	Input Data: { group: group }
+	Return: result, data
+
+	Resultcode:
+		200 OK
+		400 Error in input data, wrong format, etc
+		403 Not allowed
+		409 Conflict, e.g. groupaddress already used
+
+	The server checks, if the group described in group object could be created.
+	In case of errors 400,403,409 the server must provide an error message which
+	could be shown to the user by the client software.
 
 JSON object structures 
 ----------------------
@@ -229,5 +244,15 @@ JSON object structures
 	identity: { 
 		name: "Full Name", 
 		address: "user@domain.tld" 
+		OPT type: "user","group","bot"
 	}
 
+ - Group: used in new_group_check, new_group and ...
+	group: {
+	    identity: identity,
+	    OPT visible: public|private|...
+	    OPT access: public|inviteonly|...
+	    OPT admins: [ identity, ... ]
+	}
+
+	other visible values that the server does not know should be treated as private.
