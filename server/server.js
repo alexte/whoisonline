@@ -272,6 +272,10 @@ function dispatch_status(username,status)
 {
 
     get_identity_by_address(username,function (identity) {
+	if (!identity) {
+	    console.log("unexpected address "+username);
+	    return;
+	}
     	var o={type:"status",from:identity,status:status};
     	// get conversation partners that are online
     	db.get_conversations_by_user(username,function (data) {
@@ -297,7 +301,6 @@ function get_identity_by_address(address,callback)
 {
     // TODO identity cache
     if (db.get_identity_by_address) db.get_identity_by_address(address,callback);
-    else callback({ address:address }); // nothing found
 }
 
 function get_status(address)
@@ -319,10 +322,15 @@ function ca_login(req,res)
 		session.init_session(req,res);
 		req.session.username=u.username;
 		get_identity_by_address(u.username,function (identity) {
-		   req.session.identity=identity;
-		   oq.add_session(u.username,req.session.id);
-		   dispatch_status(u.username,"online");
-		   res.send({result:200, data:"OK"});
+		    if (!identity) {
+	    	    	console.log("unexpected address "+username);
+		        res.send({result:500, data:"unexprected address"});
+	    	    	return;
+		    }
+		    req.session.identity=identity;
+		    oq.add_session(u.username,req.session.id);
+		    dispatch_status(u.username,"online");
+		    res.send({result:200, data:"OK"});
 		});
 	    }));
     }
@@ -486,6 +494,47 @@ function ca_get_messages(req,res)
     });
 }
 
+function ca_new_group(req,res)
+{
+    var group;
+    if(req.query.check_only) group=req.query.group;
+    else group=req.body.group;
+
+    if (!group) {
+        res.send({result:400, data:"group object missing"});
+        return;
+    }
+
+    // validate group object
+    if (!group.identity.address || !group.identity.name) {
+        res.send({result:400, data:"group identity missing"});
+        return;
+    }
+
+    var n=group.identity.name;
+    var a=group.identity.address;
+    if (n.length<2 || a.substr(a.length-config.group_suffix)!=config.group_suffix)
+    {
+        res.send({result:403, data:"invalid group name or address"});
+        return;
+    }
+
+    // check if group object is available
+    // TODO db.get_identity_by_address
+
+
+    if (!req.query.check_only) 
+    {
+	db.add_group(group,function (result) {
+	    if (result) {
+		res.send({result:200, msgs:"new group added"});
+		// TODO new conversation
+	    }
+	    else res.send({result:500, msgs:"internal server error"});
+	});
+    }
+}
+
 // ---- express middleware modules
 app.use(cookieParser());
 
@@ -513,7 +562,6 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="set_conversation_status") ca_set_conversation_status(req,res); 
     else if (req.params.cmd=="get_messages") ca_get_messages(req,res); 
     else if (req.params.cmd=="set_fullname") ca_set_fullname(req,res); 
-    else if (req.params.cmd=="new_group_check") ca_new_group_check(req,res); 
     else if (req.params.cmd=="new_group") ca_new_group(req,res); 
     else if (req.params.cmd=="poll") ca_poll(req,res); 
     else res.send({ result:404, data: 'unknown command'}); 

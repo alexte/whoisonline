@@ -216,9 +216,10 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 
 	The status should be pushed to the other users of the conversation.
  
- - New Group Check
-	GET /clientapi/new_group_check
-	Input Data: { group: group }
+ - New Group 
+	POST /clientapi/new_group 
+	GET /clientapi/new_group ( when check_only:true )
+	Input Data: { OPT check_only:true ,group: group }
 	Return: result, data
 
 	Resultcode:
@@ -227,7 +228,9 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 		403 Not allowed
 		409 Conflict, e.g. groupaddress already used
 
-	The server checks, if the group described in group object could be created.
+	Asks the server to add a new group. Or if check_only is true the server 
+	must checks, if the group described in group object could be created.
+
 	In case of errors 400,403,409 the server must provide an error message which
 	could be shown to the user by the client software.
 
