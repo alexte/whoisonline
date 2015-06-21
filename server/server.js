@@ -300,7 +300,7 @@ function dispatch_msg(from,to,msg)
 function get_identity_by_address(address,callback)
 {
     // TODO identity cache
-    if (db.get_identity_by_address) db.get_identity_by_address(address,callback);
+    db.get_identity_by_address(address,callback);
 }
 
 function get_status(address)
@@ -316,23 +316,17 @@ function ca_login(req,res)
     if (req.body.username && req.body.password)
     {
 	username=req.body.username;
-	if (db.check_login_password(username,req.body.password, function(u)
-	    {
-		if (!u) { res.send({result:401, data:"username or password wrong"}); return; }
-		session.init_session(req,res);
-		req.session.username=u.username;
-		get_identity_by_address(u.username,function (identity) {
-		    if (!identity) {
-	    	    	console.log("unexpected address "+username);
-		        res.send({result:500, data:"unexprected address"});
-	    	    	return;
-		    }
-		    req.session.identity=identity;
-		    oq.add_session(u.username,req.session.id);
-		    dispatch_status(u.username,"online");
-		    res.send({result:200, data:"OK"});
-		});
-	    }));
+	db.check_login_password(username,req.body.password, function(u)
+	{
+	    if (!u) { res.send({result:401, data:"username or password wrong"}); return; }
+console.log("ca_login "+JSON.stringify(u));
+	    session.init_session(req,res);
+	    req.session.username=u.address;
+	    req.session.identity=u;
+	    oq.add_session(u.address,req.session.id);
+	    dispatch_status(u.address,"online");
+	    res.send({result:200, data:"OK"});
+	});
     }
     else { res.send({result:400, data:"invalid call"}); }
 		// TODO: throtteling for login attempts
@@ -357,12 +351,9 @@ function ca_start(req,res)
 
 	// get current seq number of this user if she is logged in twice 
     r.seq=oq.get_seq_by_username(req.session.username); 
-
-    get_identity_by_address(req.session.username,function (identity) {
-        r.identity=identity;
-        r.group_suffix=config.group_suffix;
-        res.send(r);
-    });
+    r.identity=req.session.identity;
+    r.group_suffix=config.group_suffix;
+    res.send(r);
 }
 
 function ca_search_user(req,res)
@@ -418,7 +409,12 @@ function ca_start_conversation(req,res)
     if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
     get_identity_by_address(address,function (identity) {
-    	db.add_conversation(req.session.identity,identity,"inviting",function(c) {
+console.log("in ca_start_conv get_identity callback");
+	if (!identity)
+	{
+	    res.send({result:404, data:"address not found" });
+	}
+    	else db.add_conversation(req.session.identity,identity,"inviting",function(c) {
 	    if (!c.a.status) c.a.status=get_status(req.session.identity.address);
 	    if (!c.b.status) c.b.status=get_status(identity.address);
 
@@ -520,19 +516,23 @@ function ca_new_group(req,res)
     }
 
     // check if group object is available
-    // TODO db.get_identity_by_address
-
-
-    if (!req.query.check_only) 
-    {
-	db.add_group(group,function (result) {
-	    if (result) {
-		res.send({result:200, msgs:"new group added"});
-		// TODO new conversation
-	    }
-	    else res.send({result:500, msgs:"internal server error"});
-	});
-    }
+    get_identity_by_address(a,function(identity) {
+	if (identity) // address found, already in use
+	{
+	    res.send({result:409, data:"Address already in use"});
+	    return;
+	}
+    	if (!req.query.check_only) 
+    	{
+	    db.add_group(group,function (result) {
+	    	if (result) {
+		    res.send({result:200, msgs:"new group added"});
+		    // TODO new conversation
+	        }
+	        else res.send({result:500, msgs:"internal server error"});
+	    });
+        }
+    });
 }
 
 // ---- express middleware modules

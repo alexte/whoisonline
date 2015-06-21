@@ -7,11 +7,14 @@ fs=require('fs');
 
 module.exports = function (full_config)
 {
+	// users and groups are assoc arrays with address as index 
+	// users and groups are sub types of identity (name,address,type,...)
+
     var users={};
+    var groups={};
+
     var msgs=[];
     var conversations=[];
-
-    var groups={};
 
     var changed=false;
 
@@ -98,9 +101,10 @@ module.exports = function (full_config)
 
 	if (config.auth_method=='dummy' && login.length>=3 && login==password) 
 	{
-	    if (!users[username]) users[username]={ conversations:[] };
+		// auto register user in dummy mode
+	    if (!users[username]) users[username]={ address:username, conversations:[] };
 	    changed=true;
-	    callback({ username:username });
+	    callback(users[username]);
 	}
 	else callback(false);
     }
@@ -116,6 +120,7 @@ dump_data();
     {
 	changed=true;
 	var c=get_conversation_a_b(from.address,to.address);
+
 	if (c)
 	{
 	    console.log("old conv "+JSON.stringify(c));
@@ -132,11 +137,14 @@ dump_data();
 	    return;
 	}
 
-	var c={a:from,b:to,status:status,last_used:new Date()};
+	var from_i={ address: from.address, name: from.name };
+	var to_i={ address: to.address, name: to.name };
+	var c={a:from_i,b:to_i,status:status,last_used:new Date()};
 	console.log("new conv "+JSON.stringify(c));
 	conversations.push(c);
 	users[from.address].conversations.push(c);
 	users[to.address].conversations.push(c);
+console.log("add_conversation new callback "+JSON.stringify(c));
 	if (callback) callback(c);
     }
 
@@ -178,10 +186,15 @@ dump_data();
 	});
     }
 
+	// calls callback(identity) if identity is found 
+	// calls callback(false) if identity is not found
+	// TODO remote domains
     this.get_identity_by_address=function(address,callback)
     {
-	if (users[address] && users[address].name) callback({ address:address, name:users[address].name });
-	else callback({ address:address });
+	if (!address) { console.log("get_identity_by_address called with address==false"); callback(false); }
+	else if (users[address]) callback(users[address]);
+	else if (groups[address]) callback(groups[address]);
+	else callback(false);
     }
 
     this.save_message=function(message,callback)
