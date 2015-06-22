@@ -23,7 +23,7 @@ and not on service providers. Think of email: everybody who
 has a DNS Domain can run a mail server, and when you start your
 mail server you are immediately part of the whole email 
 network. Or http: everybody can setup a webserver and is
-immediately reachable by alle users with a web browser.
+immediately reachable by all users with a web browser.
 
 WhoisOnline aims to be a standard to use the already existing
 user@domain name space, and add chat services. If you know 
@@ -54,7 +54,7 @@ What are the advantages of WhoisOnline?
  - Everybody is welcome to use this WhoisOnline software, or change it, or
    even implement a totally new server.
  - This package provides a server and a web client.
- - You may also us the server and write a different client using the current
+ - You may also use the server and write a different client using the current
    client api (CLIENT-API).
  - The server must be reachable from the internet, if you like to be part
    of the WhoisOnline network.
@@ -63,7 +63,7 @@ What are the advantages of WhoisOnline?
    available.
  - The server can handle multiple connections from the same user from different
    clients. If you send a message from one client, it shows up on all other
-   clients of this user immediately.
+   clients immediately.
 
 What's the current status?
 --------------------------
