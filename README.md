@@ -34,7 +34,7 @@ compatible server. Just like email.
 XMPP does that, whats wrong with XMPP?
 --------------------------------------
 
- - XMPP comes from the aera of XML based protocols. I don't like most of them ;-)
+ - XMPP comes from the era of XML based protocols. I don't like most of them ;-)
  - On an XMPP network the client is part of the XMPP chain
    and messeage are delivered to the client. If a user has more clients,
    messages are usually not forwarded to all of them. There are
