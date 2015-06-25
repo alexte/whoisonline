@@ -567,6 +567,12 @@ app.all("/clientapi/:cmd",function (req,res) {
     else res.send({ result:404, data: 'unknown command'}); 
 });
 
+app.use("/clientapi/",function (err,req,res,next) {
+    console.log("Error handling client api request "+req.originalUrl);
+    res.send({ result:400, data: 'invalid data'});
+});
+
+
 app.get("/",function (req,res) { 
     if (!req.session.authenticated) res.redirect("/login");
     else res.sendFile(path.resolve("../webclient/index.html"));
@@ -574,6 +580,17 @@ app.get("/",function (req,res) {
 
 app.get("/login",function (req,res) { 
     res.sendFile(path.resolve("../webclient/login.html")); 
+});
+
+// 404 url not found error handler
+app.use(function(req, res, next) {
+  res.status(404).send("Sorry! Don't know what to do...");
+});
+
+// error handler for mailformed webrequests (eg. json body parser errors)
+app.use(function (err,req,res,next) {
+    console.log("Error handling request "+req.originalUrl+" "+err.message);
+    res.status(400).send("invalid request");
 });
 
 // --------------------------
