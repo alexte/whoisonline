@@ -85,9 +85,9 @@
   
 	function generate_list_item(u)
 	{
-	    var el="";
+	    var el="<div class=identity>";
 	    if (u.name) el+="<span class=le_name>"+u.name+"</span><br>";
-	    el+="<span class=le_address>"+u.address+"</span>";
+	    el+="<span class=le_address>"+u.address+"</span></div>";
 	    return el;
 	}
 
@@ -108,8 +108,8 @@
 	    if (ul) for (var i=0;i<ul.length;i++)
 	    {
 		if (ul[i].address==me.address) continue;
-		if (ul[i].address) $("#add_search_result").append("<i class=\"join_conv_button fa fa-plus-circle\"></i>"+
-						" <li class=user_list_item>"+generate_list_item(ul[i])+"</li>");
+		if (ul[i].address) $("#add_search_result").append("<li class=user_list_item>"+
+						"<i class=\"join_conv_button fa fa-plus-circle\"></i> "+generate_list_item(ul[i])+"</li>");
 	    }  
 	    if (ul && ul.length==0)
 	    {

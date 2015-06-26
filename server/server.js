@@ -551,7 +551,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     if (!req.params.cmd) { res.send({ result:404, data: 'missing command'}); return; }
     if (req.params.cmd=="login") { ca_login(req,res); return; }
     if (req.params.cmd=="logout") { ca_logout(req,res); return; }
-    if (!req.session.authenticated) { res.send({ result:401, data: 'authentication needed'}); return; }
+    if (!req.session.authenticated) { setTimeout(function () { res.send({ result:401, data: 'authentication needed'}); },1000); return; }
 
     if (req.params.cmd=="start") ca_start(req,res); 
     else if (req.params.cmd=="start_conversation") ca_start_conversation(req,res); 
