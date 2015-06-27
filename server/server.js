@@ -545,6 +545,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // ------- webclient urls
 app.use('/css', express.static('../webclient/css'));
+app.use('/static', express.static('../webclient/static'));
 app.use('/fa', express.static('node_modules/font-awesome'));
 
 app.all("/clientapi/:cmd",function (req,res) { 
