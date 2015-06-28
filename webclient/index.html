@@ -12,19 +12,15 @@
     <script src="static/tools.js"></script>
     <script>
 
-	var toast_timer=false;
-
 	function toast(info)
 	{
-	    if (toast_timer) clearTimeout(toast_timer);
 	    var t=$("div#toast");
 	    t.stop().fadeIn(800);
 	    t.append(info+"<br>");
 
-	    toast_timer=setTimeout(function () {
-		toast_timer=false;
+	    delayed_once("toast",function () {
 		t.stop().fadeOut(800,function () { t.empty(); });
-	    },3000);
+	    },4000);
 	}
 
 	function set_online_status(w)
@@ -92,13 +88,11 @@
 	    return el;
 	}
 
-	var search_timer=false;
 	var last_search="";
 
 	function delayed_add_dialog_search()
 	{
-	    if (search_timer) clearTimeout(search_timer);
-	    search_timer=setTimeout(function () { search_timer=false; add_dialog_search(); },1000);
+	    delayed_once("search",add_dialog_search,1000);
 	}
 
 	function show_search_result(data)
@@ -124,8 +118,7 @@
 
 	function add_dialog_search()
 	{
-	    if (search_timer) clearTimeout(search_timer);
-	    search_timer=false;
+	    delayed_once("search","off");
 	    var word=$("#searchword").val();
 	    if (word.length<1 || word==last_search) return;
 	    last_search=word;
