@@ -490,10 +490,10 @@ function ca_get_messages(req,res)
     });
 }
 
-function ca_new_group(req,res)
+function ca_new_group(req,res,check_only)
 {
     var group;
-    if(req.query.check_only) group=req.query.group;
+    if(check_only) group=req.query.group;
     else group=req.body.group;
 
     if (!group) {
@@ -502,14 +502,14 @@ function ca_new_group(req,res)
     }
 
     // validate group object
-    if (!group.identity.address || !group.identity.name) {
+    if (!group.address || !group.name) {
         res.send({result:400, data:"group identity missing"});
         return;
     }
 
-    var n=group.identity.name;
-    var a=group.identity.address;
-    if (n.length<2 || a.substr(a.length-config.group_suffix)!=config.group_suffix)
+    var n=group.name;
+    var a=group.address;
+    if (n.length<2 || a.substr(a.length-config.group_suffix.length)!=config.group_suffix)
     {
         res.send({result:403, data:"invalid group name or address"});
         return;
@@ -522,7 +522,7 @@ function ca_new_group(req,res)
 	    res.send({result:409, data:"Address already in use"});
 	    return;
 	}
-    	if (!req.query.check_only) 
+    	if (!check_only) 
     	{
 	    db.add_group(group,function (result) {
 	    	if (result) {
@@ -532,6 +532,7 @@ function ca_new_group(req,res)
 	        else res.send({result:500, msgs:"internal server error"});
 	    });
         }
+	else res.send({result:200, msgs:"group is valid"});
     });
 }
 
@@ -563,7 +564,8 @@ app.all("/clientapi/:cmd",function (req,res) {
     else if (req.params.cmd=="set_conversation_status") ca_set_conversation_status(req,res); 
     else if (req.params.cmd=="get_messages") ca_get_messages(req,res); 
     else if (req.params.cmd=="set_fullname") ca_set_fullname(req,res); 
-    else if (req.params.cmd=="new_group") ca_new_group(req,res); 
+    else if (req.params.cmd=="new_group") ca_new_group(req,res,false); 
+    else if (req.params.cmd=="new_group_check") ca_new_group(req,res,true); 
     else if (req.params.cmd=="poll") ca_poll(req,res); 
     else res.send({ result:404, data: 'unknown command'}); 
 });

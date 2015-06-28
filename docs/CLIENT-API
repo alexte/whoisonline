@@ -218,8 +218,8 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
  
  - New Group 
 	POST /clientapi/new_group 
-	GET /clientapi/new_group ( when check_only:true )
-	Input Data: { OPT check_only:true ,group: group }
+	GET /clientapi/new_group_check 
+	Input Data: { group: group }
 	Return: result, data
 
 	Resultcode:
@@ -228,7 +228,7 @@ during PreAuth phase.  If the session cookie is missing, invalid or expired the 
 		403 Not allowed
 		409 Conflict, e.g. groupaddress already used
 
-	Asks the server to add a new group. Or if check_only is true the server 
+	Asks the server to add a new group. Or if used with "_check" the server 
 	must checks, if the group described in group object could be created.
 
 	In case of errors 400,403,409 the server must provide an error message which
@@ -252,7 +252,9 @@ JSON object structures
 
  - Group: used in new_group_check, new_group and ...
 	group: {
-	    identity: identity,
+	    name: "Name of the Group",
+	    address: "groupname-group@domain.tld",
+	    type: "group"
 	    OPT visible: public|private|...
 	    OPT access: public|inviteonly|...
 	    OPT admins: [ identity, ... ]

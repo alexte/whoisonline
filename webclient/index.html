@@ -37,7 +37,7 @@
 	    return false;
 	}
 
-	var post_api_cmds=["set_fullname","send_message","leave_conversation","set_conversation_status","start_conversation"];
+	var post_api_cmds=["set_fullname","send_message","new_group","leave_conversation","set_conversation_status","start_conversation"];
 
 	function api(cmd,data,f)
 	{
@@ -51,17 +51,16 @@
 		data: data,
 		dataType: "JSON",
 		success: function (ret) {
-		    if (ret.result==200) 
-		    {
-	 	        f(ret);
-		        set_online_status("online");
-		    }
-		    else if (ret.result==401)
+		    if (ret.result==401)
 		    {
 		        alert("Server asks for authentication...");
 		        window.location="/login";
 		    }
-			    // else TODO   
+		    else // if (ret.result==200) TODO check different result codes
+		    {
+	 	        f(ret);
+		        set_online_status("online");
+		    }
 		},
 	    	fail: function () { set_online_status("offline"); } // fail: server not reachable ?
 	    });
@@ -429,20 +428,28 @@
 	    var n=$("#new_groupname").val();
 
 	    if (a=="") new_group_address_autofill=true;
-	    if (this.id=="new_groupaddress") { toast("STOP"); new_group_address_autofill=false; }
+	    if (this.id=="new_groupaddress") { new_group_address_autofill=false; }
 
 	    if (this.id=="new_groupname" && new_group_address_autofill)
 	    {
 		if (n.length>0)
 		{
-		    $("#new_groupaddress").val(n+""+group_suffix);
+		    a=n.replace(/\s+/g,'-').toLowerCase()+""+group_suffix;
+		    $("#new_groupaddress").val(a);
 		    $("label.overlay[for=new_groupaddress]").hide();
 		} else
 		{
 		    $("#new_groupaddress").val("");
+		    a="";
 		    $("label.overlay[for=new_groupaddress]").show();
 		}
 	    }
+	    if (a.length>group_suffix.length && n.length>0) delayed_once("check_new_group",function() {
+		api("new_group_check",{ group: { address:a, name:n, type:"group" }},function(data) {
+		    if (data.result==200) { $("#new_group_info").text(""); $("#create_new_group").removeAttr("disabled"); }
+		    if (data.result>=400) { $("#new_group_info").text(data.data); $("#create_new_group").attr("disabled","disabled"); }
+	        });
+	    },1000);
 	}
 
 	$(document).ready(function(){
@@ -550,7 +557,9 @@
 	<label class=overlay for=new_groupname>group name</label> <input id=new_groupname> <br>
 	<label class=overlay for=new_groupaddress>group address</label> <input id=new_groupaddress> <p>
 	<label><input type=radio checked name=new_groupmode value=public> public </label>
-	<label><input type=radio name=new_groupmode value=private> private </label>
+	<label><input type=radio name=new_groupmode value=private> private </label><br>
+	<span id="new_group_info"></span><br>
+	<button id=create_new_group> Create group </button>
     </div>
 </div>
 <div id=convlist_div>
