@@ -45,10 +45,9 @@
 	    if (contains(post_api_cmds,cmd)) method="POST";
 	    else method="GET";
 
-	    $.ajax({ 
+	    var req={
 		type: method,
 		url: "/clientapi/"+cmd,
-		data: data,
 		dataType: "JSON",
 		success: function (ret) {
 		    if (ret.result==401)
@@ -63,7 +62,15 @@
 		    }
 		},
 	    	fail: function () { set_online_status("offline"); } // fail: server not reachable ?
-	    });
+	    };
+	    if (method=="POST")
+	    {
+		req.data=JSON.stringify(data);
+		req.contentType='application/json; charset=UTF-8';
+	    }
+	    else req.data=data;
+
+	    $.ajax(req);
 	}
 
 	function logout()
@@ -422,6 +429,22 @@
 	var new_group_address_autofill=true;
 	var group_suffix="";
 
+	function create_new_group(e)
+	{
+	    var a=$("#new_groupaddress").val();
+	    var n=$("#new_groupname").val();
+	    var p=$("input[name=new_groupmode").val();
+
+	    var visible="public";
+	    var access="public";
+	    if (p=="private") { visible="private"; access="inviteonly"; }
+
+	    api("new_group",{ group: { address:a, name:n, visible:visible, access:access, type:"group" }},function(data) {
+	   	if (data.result==200) { toast("Group created"); $("#new_group").hide(); toggle_add_conv_dialog(); }
+	    	if (data.result>=400) { $("#new_group_info").text(data.data); }
+	    });
+	}
+
 	function validate_new_group(e)
 	{
 	    var a=$("#new_groupaddress").val();
@@ -514,10 +537,10 @@
 	    $("#new_group").hide();
 	    $("#new_groupname, #new_groupaddress").keyup(validate_new_group);
 	    $("input[name=new_groupmode]").change(function () {
-		toast("group mode "+this.value);
 		if (this.value=="private") { $("#new_groupaddress").val("auto").hide(); $("label.overlay[for=new_groupaddress]").hide(); }
 		if (this.value=="public") { $("#new_groupaddress").val("").show(); $("label.overlay[for=new_groupaddress]").show(); }
 	    });
+	    $("#create_new_group").click(create_new_group);
 	    $("#toggle_new_group").click(function () { $("#new_group").toggle(); });
 
 	    add_omenu_entry("Logout",logout);

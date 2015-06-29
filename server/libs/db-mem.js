@@ -257,10 +257,14 @@ console.log("set_conv_status "+status);
 
     this.add_group=function(identity,callback)
     {
+console.log("add group "+JSON.stringify(identity));
 	if (!identity.address)  { if (callback) callback(false); }
 	else
 	{
-	    if (!identity.address in groups) groups[identity.address]={ identity: identity, members:[] };
+console.log("add group 2 "+JSON.stringify(identity));
+	    identity.members=[];
+	    groups[identity.address]=identity;
+console.log("add group 3 "+groups[identity.address]);
 	    if (callback) callback(groups[identity.address]);
 	}
     }

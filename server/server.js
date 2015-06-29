@@ -8,6 +8,7 @@ var config={};
 
 var fs = require('fs');
 var ini = require('ini');
+var uid = require('uid-safe');
 
 var express = require('express');
 var app = express();
@@ -490,6 +491,15 @@ function ca_get_messages(req,res)
     });
 }
 
+function generate_random_address(suffix,f)
+{
+    var a="auto"+uid.sync(8)+suffix;
+    get_identity_by_address(a,function (identity) {
+	if (identity) generate_random_address(suffix,f);
+	else f(a);
+    });
+}
+
 function ca_new_group(req,res,check_only)
 {
     var group;
@@ -509,14 +519,32 @@ function ca_new_group(req,res,check_only)
 
     var n=group.name;
     var a=group.address;
-    if (n.length<2 || a.substr(a.length-config.group_suffix.length)!=config.group_suffix)
+
+    if (n.length<2 || (a!="auto" && a.substr(a.length-config.group_suffix.length)!=config.group_suffix))
     {
         res.send({result:403, data:"invalid group name or address"});
         return;
     }
 
-    // check if group object is available
-    get_identity_by_address(a,function(identity) {
+    if (a=="auto")
+    {
+	if (check_only)
+	{
+	    res.send({result:200, msgs:"group is valid"});
+	    return;
+	}
+	generate_random_address("."+config.group_suffix,function (address) {
+	    group.address=address;
+	    db.add_group(group,function (result) {
+                if (result) {
+                    res.send({result:200, msgs:"new group added"});
+                    // TODO new conversation
+                }
+                else res.send({result:500, msgs:"internal server error"});
+            });
+	});
+    }
+    else get_identity_by_address(a,function(identity) { // check if group object is available
 	if (identity) // address found, already in use
 	{
 	    res.send({result:409, data:"Address already in use"});
