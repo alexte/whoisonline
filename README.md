@@ -41,7 +41,7 @@ XMPP does that, whats wrong with XMPP?
    extensions for that, but they are all not perfect.
  - The XMPP protocoll is usually running over TCP. But some firewalls
    force you to HTTP
- - XMPP needs a client. Current services have to be web base, at least optionally.
+ - XMPP needs a client. Current applications need a web client, at least optionally.
 
 What are the advantages of WhoisOnline?
 ---------------------------------------

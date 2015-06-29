@@ -513,6 +513,11 @@
 
 	    $("#new_group").hide();
 	    $("#new_groupname, #new_groupaddress").keyup(validate_new_group);
+	    $("input[name=new_groupmode]").change(function () {
+		toast("group mode "+this.value);
+		if (this.value=="private") { $("#new_groupaddress").val("auto").hide(); $("label.overlay[for=new_groupaddress]").hide(); }
+		if (this.value=="public") { $("#new_groupaddress").val("").show(); $("label.overlay[for=new_groupaddress]").show(); }
+	    });
 	    $("#toggle_new_group").click(function () { $("#new_group").toggle(); });
 
 	    add_omenu_entry("Logout",logout);
