@@ -257,7 +257,7 @@ JSON object structures
 	    type: "group"
 	    OPT visible: public|private|...
 	    OPT access: public|inviteonly|...
-	    OPT admins: [ identity, ... ]
+	    OPT members: [ { address: address, mode: member_mode } , ... ]
 	}
 
 	other visible values that the server does not know should be treated as private.

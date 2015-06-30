@@ -255,17 +255,14 @@ console.log("set_conv_status "+status);
 
 	// ----------------------- groups handling
 
-    this.add_group=function(identity,callback)
+    this.add_group=function(group,callback)
     {
-console.log("add group "+JSON.stringify(identity));
-	if (!identity.address)  { if (callback) callback(false); }
+	if (!group.address)  { if (callback) callback(false); }
 	else
 	{
-console.log("add group 2 "+JSON.stringify(identity));
-	    identity.members=[];
-	    groups[identity.address]=identity;
-console.log("add group 3 "+groups[identity.address]);
-	    if (callback) callback(groups[identity.address]);
+	    if (!group.members) group.members=[];
+	    groups[group.address]=group;
+	    if (callback) callback(groups[group.address]);
 	}
     }
 

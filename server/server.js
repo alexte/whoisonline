@@ -410,7 +410,6 @@ function ca_start_conversation(req,res)
     if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
     get_identity_by_address(address,function (identity) {
-console.log("in ca_start_conv get_identity callback");
 	if (!identity)
 	{
 	    res.send({result:404, data:"address not found" });
@@ -493,7 +492,7 @@ function ca_get_messages(req,res)
 
 function generate_random_address(suffix,f)
 {
-    var a="auto"+uid.sync(8)+suffix;
+    var a="auto."+uid.sync(8)+suffix;
     get_identity_by_address(a,function (identity) {
 	if (identity) generate_random_address(suffix,f);
 	else f(a);
@@ -519,12 +518,15 @@ function ca_new_group(req,res,check_only)
 
     var n=group.name;
     var a=group.address;
+    group.owner=req.session.username;
+    group.members=[{ address: req.session.username, mode: "owner" }];
 
     if (n.length<2 || (a!="auto" && a.substr(a.length-config.group_suffix.length)!=config.group_suffix))
     {
         res.send({result:403, data:"invalid group name or address"});
         return;
     }
+
 
     if (a=="auto")
     {
@@ -533,7 +535,7 @@ function ca_new_group(req,res,check_only)
 	    res.send({result:200, msgs:"group is valid"});
 	    return;
 	}
-	generate_random_address("."+config.group_suffix,function (address) {
+	generate_random_address(config.group_suffix,function (address) {
 	    group.address=address;
 	    db.add_group(group,function (result) {
                 if (result) {
@@ -583,6 +585,7 @@ app.all("/clientapi/:cmd",function (req,res) {
     if (req.params.cmd=="logout") { ca_logout(req,res); return; }
     if (!req.session.authenticated) { setTimeout(function () { res.send({ result:401, data: 'authentication needed'}); },1000); return; }
 
+    logdebug("clientapi: "+req.params.cmd);
     if (req.params.cmd=="start") ca_start(req,res); 
     else if (req.params.cmd=="start_conversation") ca_start_conversation(req,res); 
     else if (req.params.cmd=="leave_conversation") ca_leave_conversation(req,res); 
@@ -632,7 +635,7 @@ function run(next)
         var host = server.address().address;
         var port = server.address().port;
 
-        if (debug) logdebug('WIO Server listening at http://%s:%s', host, port);
+        logdebug('WIO Server listening at http://%s:%s', host, port);
 	next();
     });
 }

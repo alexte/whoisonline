@@ -16,6 +16,7 @@ Objects used in server.js:
 	    address: address,
 	    OPT name: fullname,
 	    OPT status: user_status
+	    OPT type: "user","group","bot"
 	}
 
     class conversation: used for add_conversation, start_conversation, etc
@@ -27,6 +28,15 @@ Objects used in server.js:
 	    last_used: datetime
 	}
 
+    class group:
+	group:
+	{
+	    address: address,
+	    type: "group",
+	    OPT name: fullname,
+	    members: [ { address: address, mode: member_mode } , ... ]
+	}
+
     type datetime:
 	Javascript Date() object
 
@@ -35,6 +45,9 @@ Objects used in server.js:
 
     type user_status:
 	String: "online","offline","unknown","hidden"
+
+    type member_mode:
+	String: "owner","op","rw","ro"
 
     type fullname:
 	String: UTF8 String
