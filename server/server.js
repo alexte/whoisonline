@@ -272,6 +272,7 @@ var oq=new online_queue_class();
 function dispatch_status(username,status)
 {
 
+console.log("dispatch status "+username+" "+status);
     get_identity_by_address(username,function (identity) {
 	if (!identity) {
 	    console.log("unexpected address "+username);
@@ -281,11 +282,8 @@ function dispatch_status(username,status)
     	// get conversation partners that are online
     	db.get_conversations_by_user(username,function (data) {
     	    // send status to all of them
-	    for (var i=0;i<data.length;i++)
-	    {
-	        if (data[i].a.address!=username) oq.add_message(data[i].a.address,o);
-	        if (data[i].b.address!=username) oq.add_message(data[i].b.address,o);
-	    }
+console.log("dispatch status "+JSON.stringify(data));
+	    for (var i=0;i<data.length;i++) oq.add_message(data[i].other.address,o);
     	});
     });
 }
@@ -335,8 +333,8 @@ console.log("ca_login "+JSON.stringify(u));
 
 function ca_logout(req,res)
 {
-    if (oq.remove_session(req.session.id)=="logout")
-    	dispatch_status(req.session.username,"offline");
+    ret=oq.remove_session(req.session.id);
+    if (ret.logout) dispatch_status(req.session.username,"offline");
     session.remove_session(req.session);
     res.send({result:200, data:"OK"});
 }
@@ -371,7 +369,7 @@ function ca_search_user(req,res)
 	var domain=sw.substring(i+1);
 	if (contains(config.domains,domain))  // local domain
 	{
-	    db.search_user(sw,function (identities) {
+	    db.search_identity(sw,function (identities) {
 	    	r.identities=identities;
 		res.send(r); 
 	    });
@@ -382,7 +380,7 @@ function ca_search_user(req,res)
     }
     else  // user searches name ?
     {
-	db.search_user(sw,function (identities) {
+	db.search_identity(sw,function (identities) {
             r.identities=identities;
             res.send(r); 
         });
@@ -396,8 +394,7 @@ function ca_get_conversations(req,res)
     db.get_conversations_by_user(req.session.username,function (data) {
         for (var i=0;i<data.length;i++)
 	{
-	    data[i].a.status=get_status(data[i].a.address);
-	    data[i].b.status=get_status(data[i].b.address);
+	    data[i].other.status=get_status(data[i].other.address);
 	    // TODO check online status of remote users
 	}
     	res.send({result:200, conversations: data });
@@ -410,17 +407,21 @@ function ca_start_conversation(req,res)
     if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
     get_identity_by_address(address,function (identity) {
+console.log("from: "+JSON.stringify(req.session.identity));
+console.log("to: "+JSON.stringify(identity));
 	if (!identity)
 	{
 	    res.send({result:404, data:"address not found" });
 	}
-    	else db.add_conversation(req.session.identity,identity,"inviting",function(c) {
-	    if (!c.a.status) c.a.status=get_status(req.session.identity.address);
-	    if (!c.b.status) c.b.status=get_status(identity.address);
-
+    	else db.add_conversation(req.session.identity,identity,"asking",function(c) {
+	    if (!c.other.status) c.other.status=get_status(identity.address);
 	    oq.add_message(req.session.username,{ type: "add_conversation", conversation: c });
-	    oq.add_message(address,             { type: "add_conversation", conversation: c });
-	    res.send({result:200, data:"done" });
+
+    	    db.add_conversation(identity,req.session.identity,"new",function(c) {
+	        if (!c.other.status) c.other.status="online";
+	        oq.add_message(address, { type: "add_conversation", conversation: c });
+	        res.send({result:200, data:"done" });
+	    });
 	});
     });
 }
@@ -431,9 +432,10 @@ function ca_leave_conversation(req,res)
     if (!address) { res.send({result:400, data:"invalid call"}); return; } 
 
     db.leave_conversation(req.session.username,address,function (data) {
-        db.set_conversation_status(req.session.username,address,"disconnected",function (c) {
+        oq.add_message(req.session.username,{ type: "remove_conversation", address: address });
+
+        db.set_conversation_status(address,req.session.username,"disconnected",function (c) {
             res.send({result:200, data:"ok" });
-            oq.add_message(req.session.username,{ type: "remove_conversation", conversation: c });
             oq.add_message(address, { type: "update_conversation", conversation: c });
         });
     });
@@ -467,10 +469,13 @@ function ca_set_conversation_status(req,res)
     var to=req.body.to; // identity
     var status=req.body.status; // identity
 
+	// TODO check if user is allowed to change status
     db.set_conversation_status(req.session.username,to,status,function (c) {
-        res.send({result:200, data:"ok" });
         oq.add_message(req.session.username,{ type: "update_conversation", conversation: c });
-        oq.add_message(to,                  { type: "update_conversation", conversation: c });
+        db.set_conversation_status(to,req.session.username,status,function (c) {
+            oq.add_message(to,{ type: "update_conversation", conversation: c });
+            res.send({result:200, data:"ok" });
+	});
     });
 }
 
@@ -604,10 +609,10 @@ app.all("/clientapi/:cmd",function (req,res) {
     else res.send({ result:404, data: 'unknown command'}); 
 });
 
-app.use("/clientapi/",function (err,req,res,next) {
-    console.log("Error handling client api request "+req.originalUrl);
-    res.send({ result:400, data: 'invalid data'});
-});
+// app.use("/clientapi/",function (err,req,res,next) {
+//    console.log("Error handling client api request "+JSON.stringify(err));
+//    res.send({ result:400, data: 'invalid data'});
+//});
 
 
 app.get("/",function (req,res) { 
@@ -625,10 +630,10 @@ app.use(function(req, res, next) {
 });
 
 // error handler for mailformed webrequests (eg. json body parser errors)
-app.use(function (err,req,res,next) {
-    console.log("Error handling request "+req.originalUrl+" "+err.message);
-    res.status(400).send("invalid request");
-});
+//app.use(function (err,req,res,next) {
+//    console.log("Error handling request "+req.originalUrl+" "+err.message);
+//    res.status(400).send("invalid request");
+//});
 
 // --------------------------
 function run(next)

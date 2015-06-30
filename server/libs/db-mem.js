@@ -14,7 +14,9 @@ module.exports = function (full_config)
     var groups={};
 
     var msgs=[];
-    var conversations=[];
+	// assoc array of conversation arrays
+	//    conversation["alex@wio.at"]=[ identity, ... ]
+    var conversations={};
 
     var changed=false;
 
@@ -39,20 +41,6 @@ module.exports = function (full_config)
 	    conversations=all.conversations;
 	    groups=all.groups;
 	    users=all.users;
-		// conversatoins need to be linked to users and not copied
-	    for (var user in users)
-	    {
-		if (users.hasOwnProperty(user))
-		{
-		    var readconvs=users[user].conversations;
-		    users[user].conversations=[];
-		    for(var i=0;i<readconvs.length;i++)
-		    {
-			var c=get_conversation_a_b(readconvs[i].a.address,readconvs[i].b.address);
-			if (c) users[user].conversations.push(c);
-	 	    }
-		}
-	    }
 	} catch (e) {
 	    console.log("cannot read db-mem file "+config.db_file);
 	}
@@ -70,20 +58,11 @@ module.exports = function (full_config)
 	console.log("CONVERSATIONS: "+JSON.stringify(conversations,null,2));
     }
 
-    function get_conversation_a_b(a,b)
-    {
-	for(var i=0;i<conversations.length;i++)
-	{
-	    if(((conversations[i].a.address==a) && (conversations[i].b.address==b)) ||
-	       ((conversations[i].a.address==b) && (conversations[i].b.address==a))) return conversations[i];
-	}
-	return false;
-    }
-
     function for_each_conversation(f)
     {
-	for(var i=0;i<conversations.length;i++)
-	    f(conversations[i]);
+	for(var user in conversations)
+	    for (var i=0;i<conversations[user].length;i++)
+	    	f(conversations[user][i]);
     }
 
 	// calls callback with user object if login/password is ok
@@ -102,7 +81,7 @@ module.exports = function (full_config)
 	if (config.auth_method=='dummy' && login.length>=3 && login==password) 
 	{
 		// auto register user in dummy mode
-	    if (!users[username]) users[username]={ address:username, conversations:[] };
+	    if (!users[username]) users[username]={ address:username };
 	    changed=true;
 	    callback(users[username]);
 	}
@@ -112,52 +91,59 @@ module.exports = function (full_config)
     this.get_conversations_by_user=function(username,callback)
     {
 dump_data();
-	if (users[username]) callback(users[username].conversations);
+	if (conversations[username]) callback(conversations[username]);
 	else callback([]);
+    }
+
+    function get_conversation_from_to(a,b)
+    {
+	if (!conversations[a]) return false;
+	for (var i=0;i<conversations[a].length;i++)
+	    if (conversations[a][i].other.address==b) return conversations[a][i];
+	return false;
     }
 
     this.add_conversation=function(from,to,status,callback)
     {
 	changed=true;
-	var c=get_conversation_a_b(from.address,to.address);
+	var c=get_conversation_from_to(from.address,to.address);
 
-	if (c)
-	{
-	    console.log("old conv "+JSON.stringify(c));
-	    if (users[from.address].conversations.indexOf(c)<0) users[from.address].conversations.push(c);
-	    if (users[to.address].conversations.indexOf(c)<0) users[to.address].conversations.push(c);
-	    if (from.address!=c.a.address)
-	    {
-		var mem=c.a;
-		c.a=c.b;
-		c.b=mem;
-	    }
-	    c.status="inviting";
-	    if (callback) callback(c);
-	    return;
-	}
+	if (!c) c={other:to,status:status,last_used:new Date()};
+	else    console.log("conv already present "+JSON.stringify(c));
 
-	var from_i={ address: from.address, name: from.name };
-	var to_i={ address: to.address, name: to.name };
-	var c={a:from_i,b:to_i,status:status,last_used:new Date()};
-	console.log("new conv "+JSON.stringify(c));
-	conversations.push(c);
-	if (users[from.address]) users[from.address].conversations.push(c);
-	if (users[to.address]) users[to.address].conversations.push(c);
-console.log("add_conversation new callback "+JSON.stringify(c));
+	if (!conversations[from.address]) conversations[from.address]=[];
+	conversations[from.address].push(c);
+	console.log("add_conversation new: "+JSON.stringify(c));
 	if (callback) callback(c);
     }
 
+	// removes conversation for "from" user conv list matching "to"
+	// from, to can be identities or addresses
     this.leave_conversation=function(from,to,callback)
     {
-	changed=true;
-	if (!users[from]) callback(false);
-	for (var i=0;i<users[from].conversations.length;i++)
+	if (!from || !to)
 	{
-	    if (users[from].conversations[i].a.address==to ||
-		users[from].conversations[i].b.address==to)
+            console.log("leave conversation called without from or to ");
+            callback(false);
+            return;
+	}
+	if (from.address) from=from.address;
+	if (to.address) to=to.address;
+
+	if (!conversations[from]) callback(false);
+
+	for (var i=0;i<conversations[from].length;i++)
+	{
+	    if (!conversations[from][i].other || !conversations[from][i].other.address)
 	    {
-		users[from].conversations.splice(i,1);
+		console.log("broken conversation object: "+conversations[from][i]);
+		callback(false);
+		return;
+	    }
+	    if (conversations[from][i].other.address==to)
+	    {
+		changed=true;
+		conversations[from].splice(i,1);
 		callback(true);
 		return;
 	    }
@@ -165,14 +151,17 @@ console.log("add_conversation new callback "+JSON.stringify(c));
 	callback(false);
     }
 
-    this.search_user=function(sw,callback)
+    this.search_identity=function(sw,callback)
     {
-	var username;
    	var r=[];
-	for (username in users)
-	    if (username.toLowerCase().indexOf(sw.toLowerCase())>=0 || 
-		(users[username].name && users[username].name.toLowerCase().indexOf(sw.toLowerCase())>=0))
-		r.push({ address: username, name:users[username].name});
+	for (var address in users)
+	    if (address.toLowerCase().indexOf(sw.toLowerCase())>=0 || 
+		(users[address].name && users[address].name.toLowerCase().indexOf(sw.toLowerCase())>=0))
+		r.push(users[address]);
+	for (var address in groups)
+	    if (address.toLowerCase().indexOf(sw.toLowerCase())>=0 || 
+		(groups[address].name && groups[address].name.toLowerCase().indexOf(sw.toLowerCase())>=0))
+		r.push(groups[address]);
 	callback(r);
     }
 
@@ -181,8 +170,7 @@ console.log("add_conversation new callback "+JSON.stringify(c));
 	changed=true;
 	if (users[address]) users[address].name=name;
 	for_each_conversation(function (conv) {
-	    if (conv.a.address==address) { conv.a.name=name; }
-	    if (conv.b.address==address) { conv.b.name=name; }
+	    if (conv.other.address==address) { conv.other.name=name; }
 	});
     }
 
@@ -247,8 +235,8 @@ console.log("add_conversation new callback "+JSON.stringify(c));
     this.set_conversation_status=function(from,to,status,f)
     {
 	changed=true;
-console.log("set_conv_status "+status);
-        var c=get_conversation_a_b(from,to);
+	console.log("set_conv_status "+status);
+        var c=get_conversation_from_to(from,to);
 	if (c) c.status=status;
 	f(c);
     }
