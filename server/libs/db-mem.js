@@ -142,8 +142,8 @@ dump_data();
 	var c={a:from_i,b:to_i,status:status,last_used:new Date()};
 	console.log("new conv "+JSON.stringify(c));
 	conversations.push(c);
-	users[from.address].conversations.push(c);
-	users[to.address].conversations.push(c);
+	if (users[from.address]) users[from.address].conversations.push(c);
+	if (users[to.address]) users[to.address].conversations.push(c);
 console.log("add_conversation new callback "+JSON.stringify(c));
 	if (callback) callback(c);
     }

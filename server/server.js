@@ -540,7 +540,10 @@ function ca_new_group(req,res,check_only)
 	    db.add_group(group,function (result) {
                 if (result) {
                     res.send({result:200, msgs:"new group added"});
-                    // TODO new conversation
+
+		    db.add_conversation(req.session.identity,group,"join",function(c) {
+            		oq.add_message(req.session.username,{ type: "add_conversation", conversation: c });
+        	    });
                 }
                 else res.send({result:500, msgs:"internal server error"});
             });
