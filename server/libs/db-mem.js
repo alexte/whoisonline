@@ -268,7 +268,12 @@ dump_data();
 
     this.add_group_member=function(group,identity,callback)
     {
-	if (group in groups) { groups[group].members.push({identity:identity}); if (callback) callback(groups[groups]); }
+	var mem={address:identity.address,mode:"member"};
+	if (group in groups) 
+	{
+	    if (groups[group].members.indexOf(mem)<0) groups[group].members.push(mem); 
+	    if (callback) callback(groups[group]); 
+	}
 	else { if (callback) callback(false); }
     }
 

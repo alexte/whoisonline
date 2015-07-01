@@ -288,8 +288,11 @@
 
 	    this.dispatch = function(from,to,msg)
 	    {
-		if (target.address==to) output.append("<b>you: "+msg+"<b><br>");
-		if (target.address==from) output.append(from+": "+msg+"<br>");
+		if (target.address==to || target.address==from) 
+		{
+		    if (from==me.address) output.append("<b>you: "+msg+"<b><br>");
+		    else output.append(from+": "+msg+"<br>");
+		}
 		output.stop().animate({scrollTop: output.height()}, 1000);
 	    }
 

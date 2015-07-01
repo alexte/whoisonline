@@ -291,8 +291,23 @@ console.log("dispatch status "+JSON.stringify(data));
 function dispatch_msg(from,to,msg)
 {
     var o={ type:"msg", from:from, to:to, msg:msg };
-    oq.add_message(to,o);
-    oq.add_message(from,o);
+    get_identity_by_address(to,function (identity) {
+	if (!identity) { logdebug("msg to nobody ("+to+")"); return; }
+
+        if (identity.type=="group")
+	{
+	    if (!identity.members) { logdebug("group without members ("+to+")"); return; }
+	    for(var i=0;i<identity.members.length;i++)
+	    {
+		oq.add_message(identity.members[i].address,o);
+	    }
+	}
+	else
+	{
+	    oq.add_message(to,o);
+            oq.add_message(from,o);
+	}
+    });
     db.save_message(o);
 }
 
@@ -394,6 +409,7 @@ function ca_get_conversations(req,res)
     db.get_conversations_by_user(req.session.username,function (data) {
         for (var i=0;i<data.length;i++)
 	{
+	    if (data[i].other.type && data[i].other.type=="group") data[i].other.status="online";
 	    data[i].other.status=get_status(data[i].other.address);
 	    // TODO check online status of remote users
 	}
@@ -417,11 +433,14 @@ console.log("to: "+JSON.stringify(identity));
 	    if (!c.other.status) c.other.status=get_status(identity.address);
 	    oq.add_message(req.session.username,{ type: "add_conversation", conversation: c });
 
-    	    db.add_conversation(identity,req.session.identity,"new",function(c) {
-	        if (!c.other.status) c.other.status="online";
-	        oq.add_message(address, { type: "add_conversation", conversation: c });
-	        res.send({result:200, data:"done" });
-	    });
+	    if (identity.type=="group")
+    	        db.add_group_member(identity.address,req.session.identity);
+	    else
+    	        db.add_conversation(identity,req.session.identity,"new",function(c) {
+	            if (!c.other.status) c.other.status="online";
+	            oq.add_message(address, { type: "add_conversation", conversation: c });
+	            res.send({result:200, data:"done" });
+	        });
 	});
     });
 }
