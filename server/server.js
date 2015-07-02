@@ -292,13 +292,18 @@ function dispatch_msg(from,to,msg)
 {
     var o={ type:"msg", from:from, to:to, msg:msg };
     get_identity_by_address(to,function (identity) {
+logdebug("msg to identity: "+JSON.stringify(identity));
 	if (!identity) { logdebug("msg to nobody ("+to+")"); return; }
 
         if (identity.type=="group")
 	{
+logdebug("msg to group: "+JSON.stringify(identity.members));
 	    if (!identity.members) { logdebug("group without members ("+to+")"); return; }
 	    for(var i=0;i<identity.members.length;i++)
+		if (identity.members[i].address==from && identity.members[i].mode=="readonly") return "readonly";
+	    for(var i=0;i<identity.members.length;i++)
 	    {
+logdebug("msg to user: "+JSON.stringify(identity.members[i].address));
 		oq.add_message(identity.members[i].address,o);
 	    }
 	}
@@ -309,6 +314,7 @@ function dispatch_msg(from,to,msg)
 	}
     });
     db.save_message(o);
+    return "OK";
 }
 
 function get_identity_by_address(address,callback)
@@ -479,8 +485,10 @@ function ca_send_message(req,res)
     if (msg.length==0) { res.send({result:200, data:"ignoring empty message" }); return; }
     if (!valid_address(to)) { res.send({result:400, data:"receipient missing" }); return; }
 
-    dispatch_msg(req.session.username,to,msg);
-    res.send({result:200, data:"sent" });
+    var ret=dispatch_msg(req.session.username,to,msg);
+    if (ret=="OK") res.send({result:200, data:"sent" });
+    else if (ret=="readonly") res.send({result:403, data:"you are not allowed write to this group" });
+    else res.send({result:500, data:"unkown error" });
 }
 
 function ca_set_conversation_status(req,res)
