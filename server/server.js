@@ -317,10 +317,18 @@ logdebug("msg to user: "+JSON.stringify(identity.members[i].address));
     return "OK";
 }
 
+var identity_cache={};
+
 function get_identity_by_address(address,callback)
 {
-    // TODO identity cache
-    db.get_identity_by_address(address,callback);
+    if (identity_cache[address]) callback(identity_cache[address]);
+    else
+    {
+	db.get_identity_by_address(address,function (identity) {
+	    identity_cache[address]=identity;
+	    callback(identity);
+	});
+    }
 }
 
 function get_status(address)
@@ -365,6 +373,7 @@ function ca_poll(req,res)
     oq.new_connection(req,res);
 }
 
+// "start" request is called by webclient on load
 function ca_start(req,res)
 {
     var r={ result:200, now: new Date() };
