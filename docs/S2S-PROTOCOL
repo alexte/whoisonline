@@ -1,3 +1,59 @@
 
-TODO
+WhoisOnline Server to Server Protocol
+======================================
 
+  Every WhoisOnline chat server must be open to other chat servers by implementing this protocol.
+  Opterators must not jail their users by shuting down this server to server protocol. You may
+  filter or ratelimit some malicious servers for anti-spam measures. 
+
+S2S Requirements
+----------------
+
+  You must fullfill the following requirements, to be part of the whoisonline network:
+
+  .) You need a DNS domain. Every whoisonline server is authorative for at least one DNS domain.
+
+  .) You need a webserver. This webserver must provide the following URL: 
+        https://your.domain/wio.json
+     or http://your.domain/wio.json
+
+     Https is highly recommended. Http should only be used if you can't afford or are not
+     allowed to use https on your server. Https might be ignored in the future by other server,
+     if the users want a stricter privacy policy.
+
+     The wio.json file format is described in chapter "WIO.JSON"
+
+  .) You must implement the S2S-API and responde to requests from other servers
+
+  .) You must implement the client side of the S2S-API and connect to other servers on
+     user request.
+
+S2S-API
+-------
+
+  Transport TODO
+  
+  Distributed Authentication TODO 
+
+  Requests TODO
+
+WIO.JSON
+--------
+
+  The manifest file wio.json must be provided as "http[s]://your.domain/wio.json" and describes
+  the capabilities and the configuration of "your.domain". The format is JSON. Here is an example:
+
+	{
+   	   "s2s-host": ....
+		TODO
+	}
+
+  The server must ignore unknown attributes, for forward compatibility
+
+  The following attributes are mandatory:
+
+	.) ...
+
+  These attributes are optional:
+
+	.) ....
