@@ -41,14 +41,19 @@ WIO.JSON
 --------
 
   The manifest file wio.json must be provided as "http[s]://your.domain/wio.json" and describes
-  the capabilities and the configuration of "your.domain". The format is JSON. Here is an example:
+  the capabilities and the configuration of "your.domain". The server must responde directly (200),
+  because the client may refuse to follow forwards (30x) for security reasons.
+
+  The format of this file is JSON. Here is an example:
 
 	{
-   	   "s2s-host": ....
-		TODO
+   	   "s2s-server": "wio.your.domain",
+   	   "c2s-server": "wio.your.domain"
+		... TODO
 	}
 
-  The server must ignore unknown attributes, for forward compatibility
+  
+  The receiving server or client must ignore unknown attributes for forward compatibility.
 
   The following attributes are mandatory:
 

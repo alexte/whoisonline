@@ -1,7 +1,13 @@
-; WhoisOnline Node Server Config
+;
+; WhoisOnline Node Server Config 
+;  -- Example 
+;
 
 db_module = db-mem
 group_suffix = ".group@wio.at"
+
+auth_method = dummy
+; auth_method = imap
 
 ; port = 8042
 
@@ -12,7 +18,6 @@ domains[] = wio.at
 domains[] = whoisonline.at
 
 [db-mem]
-auth_method = dummy
 ; db state is not saved if "db_file" is not set
 db_file = "wio.database.json"
 

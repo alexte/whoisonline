@@ -78,7 +78,7 @@ module.exports = function (full_config)
 	}
 	else username=login;
 
-	if (config.auth_method=='dummy' && login.length>=3 && login==password) 
+	if (full_config.auth_method=='dummy' && login.length>=3 && login==password) 
 	{
 		// auto register user in dummy mode
 	    if (!users[username]) users[username]={ address:username };

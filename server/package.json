@@ -10,5 +10,8 @@
     "uid-safe": "1.x",
     "ini": "1.x",
     "font-awesome": "4.x"
+  },
+  "optionalDependencies": {
+    "imap": "0.8.x"
   }
 }
