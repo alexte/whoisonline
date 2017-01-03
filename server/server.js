@@ -362,16 +362,21 @@ function ca_login(req,res)
     if (req.body.username && req.body.password)
     {
 	username=req.body.username;
-	db.check_login_password(username,req.body.password, function(u)
-	{
-	    if (!u) { res.send({result:401, data:"username or password wrong"}); return; }
+	auth.check_login_password(username,req.body.password, function(ret) {
+	    if (ret=="ok") { // login ok
+		db.get_user_data(username, function(u) {
+	    	    if (!u) { res.send({result:401, data:"username or password wrong in db"}); return; }
 console.log("ca_login "+JSON.stringify(u));
-	    session.init_session(req,res);
-	    req.session.username=u.address;
-	    req.session.identity=u;
-	    oq.add_session(u.address,req.session.id);
-	    dispatch_status(u.address,"online");
-	    res.send({result:200, data:"OK"});
+	    	    session.init_session(req,res);
+	    	    req.session.username=u.address;
+	    	    req.session.identity=u;
+	    	    oq.add_session(u.address,req.session.id);
+	    	    dispatch_status(u.address,"online");
+	    	    res.send({result:200, data:"OK"});
+		});
+	    }
+	    else if (ret=="authfail") res.send({result:401, data:"username or password wrong"}); 
+	    else res.send({result:500, data:"internal error" });
 	});
     }
     else { res.send({result:400, data:"invalid call"}); }

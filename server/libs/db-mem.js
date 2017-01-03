@@ -65,12 +65,13 @@ module.exports = function (full_config)
 	    	f(conversations[user][i]);
     }
 
-	// calls callback with user object if login/password is ok
-	// calls callback with false if login/password is not ok
-    this.check_login_password=function(login,password,callback)
+	// calls callback with user object if login is ok
+	// calls callback with false if login is not ok
+    this.get_user_data=function(login,callback)
     {
 	var username; 
 
+	// add domain if missing, TODO is this the correct place ?
 	if (login.indexOf("@")==-1)
 	{
 	    if (full_config.domains && full_config.domains[0].length>1) username=login+"@"+full_config.domains[0];
@@ -78,14 +79,13 @@ module.exports = function (full_config)
 	}
 	else username=login;
 
-	if (full_config.auth_method=='dummy' && login.length>=3 && login==password) 
-	{
-		// auto register user in dummy mode
-	    if (!users[username]) users[username]={ address:username };
-	    changed=true;
-	    callback(users[username]);
-	}
-	else callback(false);
+		// auto register user for now TODO: configurable
+	if (!users[username]) users[username]={ address:username };
+	changed=true;
+	callback(users[username]);
+ 
+	// with auto register get_user_data never failes
+	// callback(false);
     }
     
     this.get_conversations_by_user=function(username,callback)
