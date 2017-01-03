@@ -19,10 +19,12 @@ var bodyParser = require('body-parser');
 var Session = require('./libs/session.js');
 var session = new Session();
 var db=false;
+var auth=false;
 
 var POLL_TIMEOUT=20; // seconds
 
 // ------------ startup serializer
+
 function run_serialized(f)
 {
     var i=0;
@@ -61,6 +63,11 @@ function isEmpty(obj) {
     return true;
 }
 
+function valid_address(w)
+{
+    return w.match(/^[a-zA-Z0-9.#$%&*+/=?^_~-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$/);
+}
+
 // ------------ read config
 function read_config(next)
 {
@@ -81,16 +88,11 @@ function parse_arguments(next)
     next();
 }
 
-function valid_address(w)
-{
-    return w.match(/^[a-zA-Z0-9.#$%&*+/=?^_~-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$/);
-}
-
-// ------------ db init
+// ------------ db/auth init
 function db_init(next)
 {
     if (!config.db_module || config.db_module.length<=0) 
-    { console.log("db_module has to be set in config file"); next(); }
+    { console.log("db_module has to be set in config file"); }
     else
     {
     	logdebug("Init DB: "+config.db_module);
@@ -101,9 +103,25 @@ function db_init(next)
 	{
 	    var DB=require("./libs/"+config.db_module+".js");
 	    db=new DB(config);
-            next();
 	}
     }
+
+    if (!config.auth_module || config.auth_module.length<=0) 
+    { console.log("auth_module has to be set in config file"); }
+    else
+    {
+    	logdebug("Init Auth: "+config.auth_module);
+
+    	if (!fs.existsSync("./libs/"+config.auth_module+".js"))
+        { console.log("auth_module does not exist"); next(); }
+	else
+	{
+	    var Auth=require("./libs/"+config.auth_module+".js");
+	    auth=new Auth(config[config.auth_module]);
+	}
+    }
+
+    next();
 }
 
 // ------- online queue 
@@ -645,12 +663,6 @@ app.all("/clientapi/:cmd",function (req,res) {
     else res.send({ result:404, data: 'unknown command'}); 
 });
 
-// app.use("/clientapi/",function (err,req,res,next) {
-//    console.log("Error handling client api request "+JSON.stringify(err));
-//    res.send({ result:400, data: 'invalid data'});
-//});
-
-
 app.get("/",function (req,res) { 
     if (!req.session.authenticated) res.redirect("/login");
     else res.sendFile(path.resolve("../webclient/index.html"));
@@ -671,7 +683,7 @@ app.use(function(req, res, next) {
 //    res.status(400).send("invalid request");
 //});
 
-// --------------------------
+// -------------------------- main: start the web listener
 function run(next)
 {
     var server = app.listen(config.port||8042, function () {
@@ -684,6 +696,7 @@ function run(next)
     });
 }
 
+// ------------------------------ background jobs
 function idle_logout()
 {
     var logout_users=oq.remove_sessions(session.remove_old_sessions(config.idletime||60));

@@ -6,8 +6,8 @@
 db_module = db-mem
 group_suffix = ".group@wio.at"
 
-auth_method = dummy
-; auth_method = imap
+auth_module = auth-dummy
+; auth_module = auth-imap
 
 ; port = 8042
 
@@ -20,4 +20,7 @@ domains[] = whoisonline.at
 [db-mem]
 ; db state is not saved if "db_file" is not set
 db_file = "wio.database.json"
+
+[auth-imap]
+imap_server="your.server.name"
 

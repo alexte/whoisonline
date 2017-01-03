@@ -15,8 +15,10 @@
 
 var Imap = require("imap");
 
-module.exports = function(imap_server)
+module.exports = function(config)
 {
+    var imap_server=config.imap_server;
+
     this.check_login_password = function(login,password,callback){
 	// try to login to imap server
 	var imap=new Imap({ user: login, password: password, host: imap_server, autotls:"required"});
