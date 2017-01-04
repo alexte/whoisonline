@@ -21,7 +21,10 @@ module.exports = function(config)
 
     this.check_login_password = function(login,password,callback){
 	// try to login to imap server
-	var imap=new Imap({ user: login, password: password, host: imap_server, autotls:"required"});
+	if (config["tls_cert_check"]) tlsOptions={ rejectUnauthorized: true };
+	else			      tlsOptions={ rejectUnauthorized: false };
+
+	var imap=new Imap({ user: login, password: password, host: imap_server, tlsOptions: tlsOptions, autotls:"always"});
 	imap.once("ready",function () { imap.end(); callback("ok"); });
 	imap.once("error",function (err) { 
 	    imap.end();
