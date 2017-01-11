@@ -316,6 +316,7 @@ logdebug("msg to identity: "+JSON.stringify(identity));
         if (identity.type=="group")
 	{
 logdebug("msg to group: "+JSON.stringify(identity.members));
+	    o.to_type="group";
 	    if (!identity.members) { logdebug("group without members ("+to+")"); return; }
 	    for(var i=0;i<identity.members.length;i++)
 		if (identity.members[i].address==from && identity.members[i].mode=="readonly") return "readonly";
@@ -490,6 +491,8 @@ function ca_leave_conversation(req,res)
 
     db.leave_conversation(req.session.username,address,function (data) {
         oq.add_message(req.session.username,{ type: "remove_conversation", address: address });
+
+// TODO remove group member if address is group
 
         db.set_conversation_status(address,req.session.username,"disconnected",function (c) {
             res.send({result:200, data:"ok" });

@@ -23,5 +23,7 @@ db_file = "wio.database.json"
 
 [auth-imap]
 imap_server = "your.server.name"
-tls_cert_check = true
+; set this to true to enforce TLS certifacate checking 
+; (and your mail server has a valid certificate for TLS)
+tls_cert_check = false
 

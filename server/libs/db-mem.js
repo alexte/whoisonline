@@ -109,7 +109,12 @@ dump_data();
 	var c=get_conversation_from_to(from.address,to.address);
 
 	if (!c) c={other:to,status:status,last_used:new Date()};
-	else    console.log("conv already present "+JSON.stringify(c));
+	else
+	{
+	    console.log("conv already present "+JSON.stringify(c)); 
+	    if (callback) callback(c); 
+	    return
+	}
 
 	if (!conversations[from.address]) conversations[from.address]=[];
 	conversations[from.address].push(c);
@@ -118,7 +123,7 @@ dump_data();
     }
 
 	// removes conversation for "from" user conv list matching "to"
-	// from, to can be identities or addresses
+	//    from, to can be identities or addresses
     this.leave_conversation=function(from,to,callback)
     {
 	if (!from || !to)
@@ -224,7 +229,8 @@ dump_data();
 
 	for (var i=msgs.length-1;i>=0;i--)   // TODO optimize msg search, user authorization for msg
 	{
-	    if ((msgs[i].from==from && msgs[i].to==to) || (msgs[i].to==from && msgs[i].from==to)) 
+	    if ((msgs[i].to_type && msgs[i].to_type=="group" && msgs[i].to==to) ||  // matches group chat messages if to is group
+	        (msgs[i].from==from && msgs[i].to==to) || (msgs[i].to==from && msgs[i].from==to))  // private messages
 	    { 	out.unshift(msgs[i]); 
 		if (count!=0) { count--; if (count==0) break; }
 	    }
@@ -271,7 +277,14 @@ dump_data();
 	var mem={address:identity.address,mode:"member"};
 	if (group in groups) 
 	{
-	    if (groups[group].members.indexOf(mem)<0) groups[group].members.push(mem); 
+	    for (var i=0;i<groups[group].members.length;i++)
+		if (groups[group].members[i].address==identity.address) 
+		{
+		    console.log("allready member of this group");
+		    if (callback) callback(groups[group]);
+		    return;
+		}
+	    groups[group].members.push(mem); 
 	    if (callback) callback(groups[group]); 
 	}
 	else { if (callback) callback(false); }
