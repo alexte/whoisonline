@@ -2,6 +2,13 @@
 WhoisOnline
 ===========
 
+This project has not moved since 2015, the development has stopped.
+Please look into matrix.org (synapse, element) which is a mature project
+that implements a federated chat system.
+
+OLD
+---
+ 
 WhoisOnline will be a prototype of an open and distributed 
 chat and instant messaging system.  Easy as WhatsApp and 
 distributed as IRC and XMPP.
